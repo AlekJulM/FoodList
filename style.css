@@ -43,6 +43,28 @@ body {
   overflow-x: hidden;
 }
 
+/* Ambient atmosphere */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 50% at 10% 90%, rgba(120, 40, 60, 0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 85% 15%, rgba(90, 50, 75, 0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 40% at 50% 105%, rgba(180, 100, 60, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 50% at 75% 80%, rgba(80, 120, 70, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 90% 60% at 30% 20%, rgba(160, 80, 100, 0.05) 0%, transparent 50%);
+  animation: ambientShift 20s ease-in-out infinite alternate;
+}
+
+@keyframes ambientShift {
+  0% { opacity: 1; }
+  50% { opacity: 0.75; }
+  100% { opacity: 1; filter: hue-rotate(8deg); }
+}
+
 /* ============ STARS CANVAS ============ */
 
 #stars-canvas {
@@ -66,9 +88,10 @@ body {
   z-index: 1;
   padding: 20px;
   background:
-    radial-gradient(ellipse at 20% 80%, rgba(212, 88, 122, 0.1) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, rgba(141, 181, 128, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 100%, rgba(232, 149, 106, 0.08) 0%, transparent 40%);
+    radial-gradient(ellipse at 15% 85%, rgba(180, 60, 90, 0.2) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 20%, rgba(100, 140, 90, 0.12) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 110%, rgba(220, 140, 80, 0.15) 0%, transparent 45%),
+    radial-gradient(ellipse at 40% 30%, rgba(150, 70, 100, 0.08) 0%, transparent 50%);
 }
 
 .login-glass {
@@ -306,10 +329,10 @@ body {
 /* ============ HEADER ============ */
 
 .header {
-  background: rgba(19, 16, 26, 0.8);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border-bottom: 1px solid var(--border);
+  background: rgba(19, 16, 26, 0.65);
+  backdrop-filter: blur(30px) saturate(1.3);
+  -webkit-backdrop-filter: blur(30px) saturate(1.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -470,10 +493,10 @@ body {
 }
 
 .item-card {
-  background: var(--night-card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
+  background: rgba(28, 22, 38, 0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--radius);
   padding: 22px;
   transition: var(--transition);
@@ -514,9 +537,9 @@ body {
 }
 
 .item-card:hover {
-  border-color: var(--border-hover);
+  border-color: rgba(255, 255, 255, 0.1);
   transform: translateY(-3px);
-  box-shadow: var(--shadow), 0 0 40px rgba(212, 88, 122, 0.06);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25), 0 0 50px rgba(180, 80, 100, 0.06);
 }
 
 /* Card stagger animation */
