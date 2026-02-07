@@ -276,36 +276,35 @@
       const ctx = canvas.getContext('2d');
       let stars = [];
       let shootingStars = [];
+      let W, H;
 
-      // Palette: rose, wine, grape-green, sunset-gold, soft-lilac, warm-white
       const starColors = [
-        [240, 210, 220],  // soft pink
-        [220, 200, 240],  // lavender
-        [200, 220, 200],  // sage
-        [245, 225, 200],  // warm cream
-        [255, 235, 220],  // peach
-        [230, 230, 255],  // cool white
+        [245, 220, 230],
+        [230, 215, 245],
+        [215, 230, 215],
+        [250, 235, 215],
+        [255, 240, 225],
+        [235, 235, 255],
       ];
 
       function resize() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
       }
 
       function createStars() {
         stars = [];
-        const area = canvas.width * canvas.height;
-        const count = Math.floor(area / 5000);
+        const count = Math.floor((W * H) / 4500);
         for (let i = 0; i < count; i++) {
           const c = starColors[Math.floor(Math.random() * starColors.length)];
-          const isBright = Math.random() < 0.12;
+          const isBright = Math.random() < 0.15;
           stars.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            r: isBright ? (Math.random() * 1.8 + 0.8) : (Math.random() * 1.1 + 0.2),
-            baseAlpha: isBright ? (Math.random() * 0.4 + 0.5) : (Math.random() * 0.3 + 0.15),
+            x: Math.random() * W,
+            y: Math.random() * H,
+            r: isBright ? (Math.random() * 2 + 1) : (Math.random() * 1.2 + 0.3),
+            baseAlpha: isBright ? (Math.random() * 0.35 + 0.55) : (Math.random() * 0.25 + 0.2),
             alpha: 0,
-            speed: Math.random() * 0.003 + 0.001,
+            speed: Math.random() * 0.002 + 0.0008,
             phase: Math.random() * Math.PI * 2,
             color: c,
             bright: isBright
@@ -313,36 +312,83 @@
         }
       }
 
+      // Paint warm ambient nebula glow directly on canvas
+      function drawAtmosphere() {
+        // Bottom-left: wine / rose
+        const g1 = ctx.createRadialGradient(W * 0.08, H * 0.95, 0, W * 0.08, H * 0.95, W * 0.6);
+        g1.addColorStop(0, 'rgba(100, 30, 50, 0.35)');
+        g1.addColorStop(0.4, 'rgba(80, 25, 45, 0.15)');
+        g1.addColorStop(1, 'rgba(80, 25, 45, 0)');
+        ctx.fillStyle = g1;
+        ctx.fillRect(0, 0, W, H);
+
+        // Top-right: grape green
+        const g2 = ctx.createRadialGradient(W * 0.88, H * 0.08, 0, W * 0.88, H * 0.08, W * 0.5);
+        g2.addColorStop(0, 'rgba(60, 90, 50, 0.2)');
+        g2.addColorStop(0.5, 'rgba(50, 75, 40, 0.08)');
+        g2.addColorStop(1, 'rgba(50, 75, 40, 0)');
+        ctx.fillStyle = g2;
+        ctx.fillRect(0, 0, W, H);
+
+        // Bottom-center: sunset warm
+        const g3 = ctx.createRadialGradient(W * 0.5, H * 1.05, 0, W * 0.5, H * 1.05, W * 0.7);
+        g3.addColorStop(0, 'rgba(160, 80, 40, 0.2)');
+        g3.addColorStop(0.3, 'rgba(140, 70, 50, 0.1)');
+        g3.addColorStop(1, 'rgba(140, 70, 50, 0)');
+        ctx.fillStyle = g3;
+        ctx.fillRect(0, 0, W, H);
+
+        // Center-left: soft rose mist
+        const g4 = ctx.createRadialGradient(W * 0.25, H * 0.45, 0, W * 0.25, H * 0.45, W * 0.45);
+        g4.addColorStop(0, 'rgba(120, 50, 70, 0.1)');
+        g4.addColorStop(1, 'rgba(120, 50, 70, 0)');
+        ctx.fillStyle = g4;
+        ctx.fillRect(0, 0, W, H);
+
+        // Top-center: subtle purple
+        const g5 = ctx.createRadialGradient(W * 0.55, H * 0.1, 0, W * 0.55, H * 0.1, W * 0.4);
+        g5.addColorStop(0, 'rgba(80, 50, 100, 0.12)');
+        g5.addColorStop(1, 'rgba(80, 50, 100, 0)');
+        ctx.fillStyle = g5;
+        ctx.fillRect(0, 0, W, H);
+      }
+
       function spawnShootingStar() {
-        if (shootingStars.length < 2 && Math.random() < 0.0025) {
-          const fromLeft = Math.random() < 0.5;
+        if (shootingStars.length < 2 && Math.random() < 0.002) {
           shootingStars.push({
-            x: fromLeft ? Math.random() * canvas.width * 0.6 : canvas.width * 0.4 + Math.random() * canvas.width * 0.6,
-            y: Math.random() * canvas.height * 0.5,
+            x: Math.random() * W * 0.7 + W * 0.1,
+            y: Math.random() * H * 0.4,
             len: Math.random() * 80 + 50,
             speed: Math.random() * 5 + 3,
             alpha: 1,
-            angle: fromLeft ? (Math.PI / 5 + Math.random() * 0.3) : (Math.PI * 0.7 + Math.random() * 0.3),
-            color: Math.random() < 0.5 ? [255, 210, 230] : [240, 220, 180]
+            angle: Math.PI / 5 + Math.random() * 0.4,
+            color: Math.random() < 0.5 ? [255, 215, 235] : [245, 225, 190]
           });
         }
       }
 
       function draw() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, W, H);
+
+        // Ambient atmosphere (painted every frame)
+        drawAtmosphere();
 
         const t = Date.now();
 
-        // Draw stars
+        // Stars
         stars.forEach(s => {
-          s.alpha = s.baseAlpha + Math.sin(t * s.speed + s.phase) * (s.bright ? 0.2 : 0.1);
-          s.alpha = Math.max(0.05, Math.min(1, s.alpha));
+          s.alpha = s.baseAlpha + Math.sin(t * s.speed + s.phase) * (s.bright ? 0.2 : 0.12);
+          s.alpha = Math.max(0.08, Math.min(1, s.alpha));
 
-          // Glow for bright stars
           if (s.bright) {
             ctx.beginPath();
-            ctx.arc(s.x, s.y, s.r * 3, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(${s.color[0]}, ${s.color[1]}, ${s.color[2]}, ${s.alpha * 0.08})`;
+            ctx.arc(s.x, s.y, s.r * 4, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${s.color[0]}, ${s.color[1]}, ${s.color[2]}, ${s.alpha * 0.1})`;
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.r * 2, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${s.color[0]}, ${s.color[1]}, ${s.color[2]}, ${s.alpha * 0.2})`;
             ctx.fill();
           }
 
@@ -357,16 +403,15 @@
         shootingStars = shootingStars.filter(ss => {
           ss.x += Math.cos(ss.angle) * ss.speed;
           ss.y += Math.sin(ss.angle) * ss.speed;
-          ss.alpha -= 0.01;
+          ss.alpha -= 0.009;
           if (ss.alpha <= 0) return false;
 
           const tailX = ss.x - Math.cos(ss.angle) * ss.len;
           const tailY = ss.y - Math.sin(ss.angle) * ss.len;
           const grad = ctx.createLinearGradient(ss.x, ss.y, tailX, tailY);
           grad.addColorStop(0, `rgba(${ss.color[0]}, ${ss.color[1]}, ${ss.color[2]}, ${ss.alpha * 0.9})`);
-          grad.addColorStop(0.4, `rgba(${ss.color[0]}, ${ss.color[1]}, ${ss.color[2]}, ${ss.alpha * 0.3})`);
+          grad.addColorStop(0.3, `rgba(${ss.color[0]}, ${ss.color[1]}, ${ss.color[2]}, ${ss.alpha * 0.3})`);
           grad.addColorStop(1, `rgba(${ss.color[0]}, ${ss.color[1]}, ${ss.color[2]}, 0)`);
-
           ctx.beginPath();
           ctx.moveTo(ss.x, ss.y);
           ctx.lineTo(tailX, tailY);
@@ -375,12 +420,10 @@
           ctx.lineCap = 'round';
           ctx.stroke();
 
-          // Head glow
           ctx.beginPath();
           ctx.arc(ss.x, ss.y, 3, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(255, 255, 255, ${ss.alpha * 0.6})`;
+          ctx.fillStyle = `rgba(255, 255, 255, ${ss.alpha * 0.7})`;
           ctx.fill();
-
           return true;
         });
 
