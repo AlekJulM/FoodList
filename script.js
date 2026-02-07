@@ -145,19 +145,31 @@ function mostrarApp() {
 // ============ API ============
 
 async function apiCall(action, data = {}) {
-  const response = await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({
-      action,
-      clave: state.clave,
-      ...data
-    })
-  });
+  const payload = {
+    action,
+    clave: data.clave || state.clave,
+    ...data
+  };
 
-  // Google Apps Script redirige, así que usamos el response final
-  const result = await response.json();
-  return result;
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    });
+
+    const text = await response.text();
+    try {
+      return JSON.parse(text);
+    } catch {
+      console.error('Respuesta no es JSON:', text);
+      return { success: false, error: 'Respuesta inválida del servidor' };
+    }
+  } catch (err) {
+    console.error('Error en API:', err);
+    return { success: false, error: 'Error de conexión' };
+  }
 }
 
 // ============ DATOS ============
