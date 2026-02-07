@@ -152,14 +152,13 @@ async function apiCall(action, data = {}) {
   };
 
   try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      redirect: 'follow',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(payload)
-    });
+    // Usamos GET con los datos en la URL para evitar problemas de CORS/redirect
+    const params = encodeURIComponent(JSON.stringify(payload));
+    const url = `${API_URL}?data=${params}`;
 
+    const response = await fetch(url);
     const text = await response.text();
+
     try {
       return JSON.parse(text);
     } catch {
