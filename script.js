@@ -200,8 +200,8 @@ async function cargarDatos() {
       apiCall('obtener', { tipo: 'actividades' })
     ]);
 
-    if (restResult.success) state.restaurantes = restResult.items;
-    if (actResult.success) state.actividades = actResult.items;
+    if (restResult.success) state.restaurantes = (restResult.items || []).map(normalizeItem);
+    if (actResult.success) state.actividades = (actResult.items || []).map(normalizeItem);
 
     renderItems();
   } catch (err) {
@@ -209,6 +209,25 @@ async function cargarDatos() {
   }
 
   mostrarLoading(false);
+}
+
+// ============ NORMALIZAR DATOS ============
+
+function normalizeItem(item) {
+  // Normalizar estado: aceptar variaciones como 'Pendiente', 'PENDIENTE', 'por visitar', etc.
+  if (item.estado) {
+    const est = item.estado.toLowerCase().trim();
+    if (est === 'visitado' || est === 'realizada' || est === 'realizado' || est === 'hecho') {
+      item.estado = 'visitado';
+    } else {
+      item.estado = 'pendiente';
+    }
+  } else {
+    item.estado = 'pendiente';
+  }
+  // Asegurar calificacion como número
+  item.calificacion = parseInt(item.calificacion) || 0;
+  return item;
 }
 
 // ============ TABS Y FILTROS ============
@@ -259,7 +278,7 @@ function renderItems() {
 
   // Event listeners para botones de cada card
   $$('.card-btn-edit').forEach(btn => {
-    btn.addEventListener('click', () => editarItem(btn.dataset.id));
+    btn.addEventListener('click', () => editarItem(btn.dataset.id, btn.dataset.type));
   });
   $$('.card-btn-delete').forEach(btn => {
     btn.addEventListener('click', () => confirmarEliminar(btn.dataset.id));
@@ -284,7 +303,7 @@ function renderRestauranteCard(item) {
         ${item.descripcion ? `<div class="card-description">${escapeHtml(item.descripcion)}</div>` : ''}
       ` : ''}
       <div class="card-actions">
-        <button class="card-btn card-btn-edit" data-id="${item.id}">Editar</button>
+        <button class="card-btn card-btn-edit" data-id="${item.id}" data-type="restaurantes">Editar</button>
         <button class="card-btn card-btn-delete" data-id="${item.id}">Eliminar</button>
       </div>
     </div>
@@ -310,7 +329,7 @@ function renderActividadCard(item) {
         ${item.descripcion ? `<div class="card-description">${escapeHtml(item.descripcion)}</div>` : ''}
       ` : ''}
       <div class="card-actions">
-        <button class="card-btn card-btn-edit" data-id="${item.id}">Editar</button>
+        <button class="card-btn card-btn-edit" data-id="${item.id}" data-type="actividades">Editar</button>
         <button class="card-btn card-btn-delete" data-id="${item.id}">Eliminar</button>
       </div>
     </div>
@@ -345,9 +364,13 @@ function abrirModalNuevo() {
   }
 }
 
-function editarItem(id) {
-  if (state.tabActual === 'restaurantes') {
-    const item = state.restaurantes.find(r => r.id === id);
+function editarItem(id, type) {
+  const tab = type || state.tabActual;
+  // Comparar como string para evitar problemas number vs string
+  const idStr = String(id);
+
+  if (tab === 'restaurantes') {
+    const item = state.restaurantes.find(r => String(r.id) === idStr);
     if (!item) return;
 
     $('#modal-rest-title').textContent = 'Editar Restaurante';
@@ -360,7 +383,7 @@ function editarItem(id) {
     toggleDetalles('rest', item.estado);
     $('#modal-restaurante').hidden = false;
   } else {
-    const item = state.actividades.find(a => a.id === id);
+    const item = state.actividades.find(a => String(a.id) === idStr);
     if (!item) return;
 
     $('#modal-act-title').textContent = 'Editar Actividad';
