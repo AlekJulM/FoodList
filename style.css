@@ -31,6 +31,11 @@
   box-sizing: border-box;
 }
 
+/* Forzar que hidden siempre funcione, incluso con display:flex */
+[hidden] {
+  display: none !important;
+}
+
 body {
   font-family: 'Nunito', sans-serif;
   background: var(--bg);
