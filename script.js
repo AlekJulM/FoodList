@@ -151,24 +151,42 @@ async function apiCall(action, data = {}) {
     ...data
   };
 
-  try {
-    // Usamos GET con los datos en la URL para evitar problemas de CORS/redirect
+  // Google Apps Script redirige a googleusercontent.com
+  // Usamos un <script> JSONP para evitar problemas de CORS
+  return new Promise((resolve) => {
+    const callbackName = 'cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
     const params = encodeURIComponent(JSON.stringify(payload));
-    const url = `${API_URL}?data=${params}`;
+    const url = `${API_URL}?data=${params}&callback=${callbackName}`;
 
-    const response = await fetch(url);
-    const text = await response.text();
+    // Timeout por si falla
+    const timeout = setTimeout(() => {
+      cleanup();
+      console.error('API timeout');
+      resolve({ success: false, error: 'Timeout - intentá de nuevo' });
+    }, 15000);
 
-    try {
-      return JSON.parse(text);
-    } catch {
-      console.error('Respuesta no es JSON:', text);
-      return { success: false, error: 'Respuesta inválida del servidor' };
+    function cleanup() {
+      clearTimeout(timeout);
+      delete window[callbackName];
+      const s = document.getElementById(callbackName);
+      if (s) s.remove();
     }
-  } catch (err) {
-    console.error('Error en API:', err);
-    return { success: false, error: 'Error de conexión' };
-  }
+
+    // Callback global que Google Apps Script va a llamar
+    window[callbackName] = function(result) {
+      cleanup();
+      resolve(result);
+    };
+
+    const script = document.createElement('script');
+    script.id = callbackName;
+    script.src = url;
+    script.onerror = function() {
+      cleanup();
+      resolve({ success: false, error: 'Error de conexión' });
+    };
+    document.body.appendChild(script);
+  });
 }
 
 // ============ DATOS ============
