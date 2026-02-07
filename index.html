@@ -16,25 +16,32 @@
   <!-- ============ PANTALLA DE LOGIN ============ -->
   <div id="login-screen" class="login-screen">
     <div class="login-glass">
-      <div class="login-brand">
-        <div class="brand-icon">✦</div>
-        <h1>Nuestros Lugares</h1>
-        <p class="login-subtitle">Un mapa de nuestras aventuras juntas</p>
-      </div>
-      <form id="login-form">
-        <div class="input-group">
-          <input type="password" id="password-input" placeholder="Ingresá la clave secreta..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" required>
-          <div class="input-glow"></div>
+      <div class="login-glow-border"></div>
+      <div class="login-inner">
+        <div class="login-brand">
+          <div class="brand-icon-wrap">
+            <div class="brand-icon">✦</div>
+            <div class="brand-orbit"></div>
+          </div>
+          <h1>Nuestros Lugares</h1>
+          <p class="login-subtitle">Un mapa de nuestras aventuras juntas</p>
         </div>
-        <button type="submit" class="btn btn-primary btn-login">
-          Descubrir ✦
-        </button>
-        <p id="login-error" class="login-error" hidden>Clave incorrecta — intentá de nuevo</p>
-      </form>
-      <div class="login-footer">
-        <span class="tulip-deco">🌷</span>
-        <span class="tulip-deco">🍇</span>
-        <span class="tulip-deco">🌷</span>
+        <form id="login-form">
+          <div class="input-group">
+            <svg class="input-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            <input type="password" id="password-input" placeholder="Ingresá la clave secreta..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-login">
+            <span>Descubrir</span>
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+          <p id="login-error" class="login-error" hidden>Clave incorrecta — intentá de nuevo</p>
+        </form>
+        <div class="login-footer">
+          <span class="tulip-deco">🌷</span>
+          <span class="tulip-deco">🍇</span>
+          <span class="tulip-deco">🌷</span>
+        </div>
       </div>
     </div>
   </div>
@@ -74,6 +81,11 @@
       <button class="filter-btn" data-filter="visitado">Visitados</button>
     </div>
 
+    <!-- Counter -->
+    <div class="counter-bar">
+      <span id="counter-text" class="counter-text"></span>
+    </div>
+
     <!-- Contenido -->
     <main class="main-content">
       
@@ -84,10 +96,17 @@
       <!-- Estado vacío -->
       <div id="empty-state" class="empty-state" hidden>
         <div class="empty-visual">
-          <span>🌷</span>
+          <div class="empty-icon-stack">
+            <span class="empty-icon-bg">🌷</span>
+            <span class="empty-icon-sparkle">✦</span>
+          </div>
         </div>
         <h3>Todo por descubrir</h3>
         <p>Agregá el primer lugar y empecemos esta aventura</p>
+        <button class="btn btn-primary btn-empty-add" id="btn-empty-add" style="margin-top:18px;font-size:13px;padding:10px 22px;">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          <span>Agregar primero</span>
+        </button>
       </div>
 
       <!-- Loading -->
@@ -250,12 +269,20 @@
 
   <script src="script.js"></script>
 
-  <!-- ✦ Estrellas animadas de fondo -->
+  <!-- ✦ Estrellas animadas con shooting stars -->
   <script>
     (function() {
       const canvas = document.getElementById('stars-canvas');
       const ctx = canvas.getContext('2d');
       let stars = [];
+      let shootingStars = [];
+      const colors = [
+        [232, 180, 200],
+        [212, 88, 122],
+        [141, 181, 128],
+        [240, 194, 127],
+        [200, 200, 255]
+      ];
       
       function resize() {
         canvas.width = window.innerWidth;
@@ -264,28 +291,70 @@
       
       function createStars() {
         stars = [];
-        const count = Math.floor((canvas.width * canvas.height) / 8000);
+        const count = Math.floor((canvas.width * canvas.height) / 7000);
         for (let i = 0; i < count; i++) {
+          const c = colors[Math.floor(Math.random() * colors.length)];
           stars.push({
             x: Math.random() * canvas.width,
             y: Math.random() * canvas.height,
-            r: Math.random() * 1.2 + 0.3,
+            r: Math.random() * 1.4 + 0.2,
             alpha: Math.random(),
-            speed: Math.random() * 0.005 + 0.002
+            speed: Math.random() * 0.005 + 0.001,
+            color: c
+          });
+        }
+      }
+
+      function spawnShootingStar() {
+        if (shootingStars.length < 2 && Math.random() < 0.003) {
+          shootingStars.push({
+            x: Math.random() * canvas.width * 0.8,
+            y: Math.random() * canvas.height * 0.4,
+            len: Math.random() * 60 + 40,
+            speed: Math.random() * 4 + 3,
+            alpha: 1,
+            angle: Math.PI / 4 + (Math.random() - 0.5) * 0.3
           });
         }
       }
       
       function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
         stars.forEach(s => {
-          s.alpha += Math.sin(Date.now() * s.speed) * 0.008;
-          s.alpha = Math.max(0.1, Math.min(1, s.alpha));
+          s.alpha += Math.sin(Date.now() * s.speed) * 0.01;
+          s.alpha = Math.max(0.05, Math.min(1, s.alpha));
           ctx.beginPath();
           ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(232, 180, 200, ${s.alpha * 0.5})`;
+          ctx.fillStyle = `rgba(${s.color[0]}, ${s.color[1]}, ${s.color[2]}, ${s.alpha * 0.45})`;
           ctx.fill();
         });
+
+        spawnShootingStar();
+        shootingStars = shootingStars.filter(ss => {
+          ss.x += Math.cos(ss.angle) * ss.speed;
+          ss.y += Math.sin(ss.angle) * ss.speed;
+          ss.alpha -= 0.012;
+          if (ss.alpha <= 0) return false;
+          const grad = ctx.createLinearGradient(
+            ss.x, ss.y,
+            ss.x - Math.cos(ss.angle) * ss.len,
+            ss.y - Math.sin(ss.angle) * ss.len
+          );
+          grad.addColorStop(0, `rgba(255, 220, 240, ${ss.alpha})`);
+          grad.addColorStop(1, 'rgba(255, 220, 240, 0)');
+          ctx.beginPath();
+          ctx.moveTo(ss.x, ss.y);
+          ctx.lineTo(
+            ss.x - Math.cos(ss.angle) * ss.len,
+            ss.y - Math.sin(ss.angle) * ss.len
+          );
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          return true;
+        });
+
         requestAnimationFrame(draw);
       }
       
