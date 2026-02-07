@@ -3,28 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🍽️ Nuestros Lugares</title>
+  <title>Nuestros Lugares ✦</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
+  <!-- ✦ Estrellas decorativas (canvas animado) -->
+  <canvas id="stars-canvas"></canvas>
+
   <!-- ============ PANTALLA DE LOGIN ============ -->
   <div id="login-screen" class="login-screen">
-    <div class="login-card">
-      <div class="login-emoji">🔐</div>
-      <h1>Nuestros Lugares</h1>
-      <p class="login-subtitle">Ingresá la contraseña para continuar</p>
+    <div class="login-glass">
+      <div class="login-brand">
+        <div class="brand-icon">✦</div>
+        <h1>Nuestros Lugares</h1>
+        <p class="login-subtitle">Un mapa de nuestras aventuras juntas</p>
+      </div>
       <form id="login-form">
         <div class="input-group">
-          <input type="password" id="password-input" placeholder="Contraseña..." autocomplete="off" required>
+          <input type="password" id="password-input" placeholder="Ingresá la clave secreta..." autocomplete="off" required>
+          <div class="input-glow"></div>
         </div>
         <button type="submit" class="btn btn-primary btn-login">
-          Entrar ✨
+          Descubrir ✦
         </button>
-        <p id="login-error" class="login-error" hidden>Contraseña incorrecta 😬</p>
+        <p id="login-error" class="login-error" hidden>Clave incorrecta — intentá de nuevo</p>
       </form>
+      <div class="login-footer">
+        <span class="tulip-deco">🌷</span>
+        <span class="tulip-deco">🍇</span>
+        <span class="tulip-deco">🌷</span>
+      </div>
     </div>
   </div>
 
@@ -34,9 +45,12 @@
     <!-- Header -->
     <header class="header">
       <div class="header-content">
-        <h1 class="logo">🍽️ Nuestros Lugares</h1>
-        <button class="btn btn-logout" id="btn-logout" title="Cerrar sesión">
-          Salir 👋
+        <div class="logo-group">
+          <span class="logo-icon">✦</span>
+          <h1 class="logo">Nuestros Lugares</h1>
+        </div>
+        <button class="btn-icon" id="btn-logout" title="Cerrar sesión">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
         </button>
       </div>
     </header>
@@ -44,20 +58,20 @@
     <!-- Tabs -->
     <nav class="tabs">
       <button class="tab active" data-tab="restaurantes">
-        <span class="tab-icon">🍕</span>
+        <span class="tab-icon">🍽</span>
         <span class="tab-text">Restaurantes</span>
       </button>
       <button class="tab" data-tab="actividades">
-        <span class="tab-icon">🎬</span>
+        <span class="tab-icon">✦</span>
         <span class="tab-text">Actividades</span>
       </button>
     </nav>
 
     <!-- Filtros -->
     <div class="filters">
-      <button class="filter-btn active" data-filter="todos">📋 Todos</button>
-      <button class="filter-btn" data-filter="pendiente">⏳ Pendientes</button>
-      <button class="filter-btn" data-filter="visitado">✅ Visitados</button>
+      <button class="filter-btn active" data-filter="todos">Todos</button>
+      <button class="filter-btn" data-filter="pendiente">Por visitar</button>
+      <button class="filter-btn" data-filter="visitado">Visitados</button>
     </div>
 
     <!-- Contenido -->
@@ -65,35 +79,38 @@
       
       <!-- Lista de items -->
       <div id="items-list" class="items-list">
-        <!-- Los items se renderizan dinámicamente -->
       </div>
 
       <!-- Estado vacío -->
       <div id="empty-state" class="empty-state" hidden>
-        <div class="empty-emoji">🗺️</div>
-        <h3>¡Aún no hay nada aquí!</h3>
-        <p>Agregá un lugar nuevo para empezar la aventura</p>
+        <div class="empty-visual">
+          <span>🌷</span>
+        </div>
+        <h3>Todo por descubrir</h3>
+        <p>Agregá el primer lugar y empecemos esta aventura</p>
       </div>
 
       <!-- Loading -->
       <div id="loading" class="loading" hidden>
         <div class="spinner"></div>
-        <p>Cargando...</p>
+        <p>Cargando lugares...</p>
       </div>
 
     </main>
 
     <!-- Botón flotante agregar -->
     <button id="btn-add" class="fab" title="Agregar nuevo">
-      <span>+</span>
+      <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
     </button>
 
     <!-- ============ MODAL RESTAURANTE ============ -->
     <div id="modal-restaurante" class="modal-overlay" hidden>
       <div class="modal">
         <div class="modal-header">
-          <h2 id="modal-rest-title">🍽️ Nuevo Restaurante</h2>
-          <button class="modal-close" data-close="modal-restaurante">&times;</button>
+          <h2 id="modal-rest-title">Nuevo Restaurante</h2>
+          <button class="modal-close" data-close="modal-restaurante">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
         </div>
         <form id="form-restaurante" class="modal-form">
           <input type="hidden" id="rest-id">
@@ -104,21 +121,21 @@
           </div>
           
           <div class="form-group">
-            <label for="rest-ubicacion">📍 Ubicación</label>
+            <label for="rest-ubicacion">Ubicación</label>
             <input type="text" id="rest-ubicacion" placeholder="Ej: Av. Corrientes 1234, CABA">
           </div>
           
           <div class="form-group">
             <label for="rest-estado">Estado</label>
             <select id="rest-estado">
-              <option value="pendiente">⏳ Pendiente</option>
-              <option value="visitado">✅ Visitado</option>
+              <option value="pendiente">Por visitar</option>
+              <option value="visitado">Ya visitado</option>
             </select>
           </div>
           
           <div id="rest-detalles-visitado">
             <div class="form-group">
-              <label>Calificación</label>
+              <label>¿Qué tan bueno fue?</label>
               <div class="rating-input" id="rest-rating">
                 <span class="star" data-value="1">★</span>
                 <span class="star" data-value="2">★</span>
@@ -129,14 +146,14 @@
             </div>
             
             <div class="form-group">
-              <label for="rest-descripcion">📝 ¿Qué comimos? / Opinión</label>
-              <textarea id="rest-descripcion" rows="3" placeholder="Ej: Pedimos unas empanadas increíbles y una milanesa napolitana 🤤"></textarea>
+              <label for="rest-descripcion">¿Qué comimos? Opinión</label>
+              <textarea id="rest-descripcion" rows="3" placeholder="Pedimos empanadas increíbles y una milanesa napolitana..."></textarea>
             </div>
           </div>
           
           <div class="modal-actions">
-            <button type="button" class="btn btn-secondary" data-close="modal-restaurante">Cancelar</button>
-            <button type="submit" class="btn btn-primary">Guardar 💾</button>
+            <button type="button" class="btn btn-ghost" data-close="modal-restaurante">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar</button>
           </div>
         </form>
       </div>
@@ -146,8 +163,10 @@
     <div id="modal-actividad" class="modal-overlay" hidden>
       <div class="modal">
         <div class="modal-header">
-          <h2 id="modal-act-title">🎬 Nueva Actividad</h2>
-          <button class="modal-close" data-close="modal-actividad">&times;</button>
+          <h2 id="modal-act-title">Nueva Actividad</h2>
+          <button class="modal-close" data-close="modal-actividad">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
         </div>
         <form id="form-actividad" class="modal-form">
           <input type="hidden" id="act-id">
@@ -158,35 +177,35 @@
           </div>
           
           <div class="form-group">
-            <label for="act-tipo">Tipo de actividad</label>
+            <label for="act-tipo">Tipo</label>
             <select id="act-tipo">
-              <option value="🎬 Cine">🎬 Cine</option>
-              <option value="🎵 Concierto">🎵 Concierto</option>
-              <option value="🌳 Parque">🌳 Parque</option>
-              <option value="🎭 Teatro">🎭 Teatro</option>
-              <option value="🎨 Museo">🎨 Museo</option>
-              <option value="🎳 Entretenimiento">🎳 Entretenimiento</option>
-              <option value="🏖️ Paseo">🏖️ Paseo</option>
-              <option value="📚 Otro">📚 Otro</option>
+              <option value="🎬 Cine">Cine</option>
+              <option value="🎵 Concierto">Concierto</option>
+              <option value="🌳 Parque">Parque</option>
+              <option value="🎭 Teatro">Teatro</option>
+              <option value="🎨 Museo">Museo</option>
+              <option value="🎳 Entretenimiento">Entretenimiento</option>
+              <option value="🏖️ Paseo">Paseo</option>
+              <option value="📚 Otro">Otro</option>
             </select>
           </div>
           
           <div class="form-group">
-            <label for="act-ubicacion">📍 Ubicación</label>
+            <label for="act-ubicacion">Ubicación</label>
             <input type="text" id="act-ubicacion" placeholder="Ej: Movistar Arena">
           </div>
           
           <div class="form-group">
             <label for="act-estado">Estado</label>
             <select id="act-estado">
-              <option value="pendiente">⏳ Pendiente</option>
-              <option value="visitado">✅ Realizada</option>
+              <option value="pendiente">Por hacer</option>
+              <option value="visitado">Ya realizada</option>
             </select>
           </div>
           
           <div id="act-detalles-visitado">
             <div class="form-group">
-              <label>Calificación</label>
+              <label>¿Qué tan bueno fue?</label>
               <div class="rating-input" id="act-rating">
                 <span class="star" data-value="1">★</span>
                 <span class="star" data-value="2">★</span>
@@ -197,14 +216,14 @@
             </div>
             
             <div class="form-group">
-              <label for="act-descripcion">📝 Opinión</label>
-              <textarea id="act-descripcion" rows="3" placeholder="Ej: ¡Estuvo increíble! Lloramos con Fix You 😭🎶"></textarea>
+              <label for="act-descripcion">Opinión</label>
+              <textarea id="act-descripcion" rows="3" placeholder="¡Estuvo increíble! Lo mejor fue..."></textarea>
             </div>
           </div>
           
           <div class="modal-actions">
-            <button type="button" class="btn btn-secondary" data-close="modal-actividad">Cancelar</button>
-            <button type="submit" class="btn btn-primary">Guardar 💾</button>
+            <button type="button" class="btn btn-ghost" data-close="modal-actividad">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar</button>
           </div>
         </form>
       </div>
@@ -214,13 +233,15 @@
     <div id="modal-delete" class="modal-overlay" hidden>
       <div class="modal modal-small">
         <div class="modal-header">
-          <h2>🗑️ ¿Eliminar?</h2>
-          <button class="modal-close" data-close="modal-delete">&times;</button>
+          <h2>Eliminar</h2>
+          <button class="modal-close" data-close="modal-delete">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </button>
         </div>
         <p class="delete-msg">¿Seguras que quieren eliminar este lugar? No se puede deshacer.</p>
         <div class="modal-actions">
-          <button class="btn btn-secondary" data-close="modal-delete">No, dejá</button>
-          <button class="btn btn-danger" id="btn-confirm-delete">Sí, eliminar 🗑️</button>
+          <button class="btn btn-ghost" data-close="modal-delete">Cancelar</button>
+          <button class="btn btn-danger" id="btn-confirm-delete">Eliminar</button>
         </div>
       </div>
     </div>
@@ -228,5 +249,51 @@
   </div>
 
   <script src="script.js"></script>
+
+  <!-- ✦ Estrellas animadas de fondo -->
+  <script>
+    (function() {
+      const canvas = document.getElementById('stars-canvas');
+      const ctx = canvas.getContext('2d');
+      let stars = [];
+      
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      
+      function createStars() {
+        stars = [];
+        const count = Math.floor((canvas.width * canvas.height) / 8000);
+        for (let i = 0; i < count; i++) {
+          stars.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            r: Math.random() * 1.2 + 0.3,
+            alpha: Math.random(),
+            speed: Math.random() * 0.005 + 0.002
+          });
+        }
+      }
+      
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        stars.forEach(s => {
+          s.alpha += Math.sin(Date.now() * s.speed) * 0.008;
+          s.alpha = Math.max(0.1, Math.min(1, s.alpha));
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(232, 180, 200, ${s.alpha * 0.5})`;
+          ctx.fill();
+        });
+        requestAnimationFrame(draw);
+      }
+      
+      resize();
+      createStars();
+      draw();
+      window.addEventListener('resize', () => { resize(); createStars(); });
+    })();
+  </script>
 </body>
 </html>

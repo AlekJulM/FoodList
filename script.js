@@ -269,23 +269,23 @@ function renderItems() {
 function renderRestauranteCard(item) {
   const estrellas = renderStars(item.calificacion);
   const badge = item.estado === 'visitado'
-    ? '<span class="card-badge badge-visitado">✅ Visitado</span>'
-    : '<span class="card-badge badge-pendiente">⏳ Pendiente</span>';
+    ? '<span class="card-badge badge-visitado">Visitado</span>'
+    : '<span class="card-badge badge-pendiente">Por visitar</span>';
 
   return `
     <div class="item-card ${item.estado}">
       <div class="card-top">
-        <span class="card-name">🍽️ ${escapeHtml(item.nombre)}</span>
+        <span class="card-name">${escapeHtml(item.nombre)}</span>
         ${badge}
       </div>
-      ${item.ubicacion ? `<div class="card-location">📍 ${escapeHtml(item.ubicacion)}</div>` : ''}
+      ${item.ubicacion ? `<div class="card-location">${escapeHtml(item.ubicacion)}</div>` : ''}
       ${item.estado === 'visitado' ? `
         <div class="card-rating">${estrellas}</div>
         ${item.descripcion ? `<div class="card-description">${escapeHtml(item.descripcion)}</div>` : ''}
       ` : ''}
       <div class="card-actions">
-        <button class="card-btn card-btn-edit" data-id="${item.id}">✏️ Editar</button>
-        <button class="card-btn card-btn-delete" data-id="${item.id}">🗑️</button>
+        <button class="card-btn card-btn-edit" data-id="${item.id}">Editar</button>
+        <button class="card-btn card-btn-delete" data-id="${item.id}">Eliminar</button>
       </div>
     </div>
   `;
@@ -294,8 +294,8 @@ function renderRestauranteCard(item) {
 function renderActividadCard(item) {
   const estrellas = renderStars(item.calificacion);
   const badge = item.estado === 'visitado'
-    ? '<span class="card-badge badge-visitado">✅ Realizada</span>'
-    : '<span class="card-badge badge-pendiente">⏳ Pendiente</span>';
+    ? '<span class="card-badge badge-visitado">Realizada</span>'
+    : '<span class="card-badge badge-pendiente">Pendiente</span>';
 
   return `
     <div class="item-card ${item.estado}">
@@ -304,14 +304,14 @@ function renderActividadCard(item) {
         ${badge}
       </div>
       ${item.tipo ? `<span class="card-type">${escapeHtml(item.tipo)}</span>` : ''}
-      ${item.ubicacion ? `<div class="card-location">📍 ${escapeHtml(item.ubicacion)}</div>` : ''}
+      ${item.ubicacion ? `<div class="card-location">${escapeHtml(item.ubicacion)}</div>` : ''}
       ${item.estado === 'visitado' ? `
         <div class="card-rating">${estrellas}</div>
         ${item.descripcion ? `<div class="card-description">${escapeHtml(item.descripcion)}</div>` : ''}
       ` : ''}
       <div class="card-actions">
-        <button class="card-btn card-btn-edit" data-id="${item.id}">✏️ Editar</button>
-        <button class="card-btn card-btn-delete" data-id="${item.id}">🗑️</button>
+        <button class="card-btn card-btn-edit" data-id="${item.id}">Editar</button>
+        <button class="card-btn card-btn-delete" data-id="${item.id}">Eliminar</button>
       </div>
     </div>
   `;
@@ -329,14 +329,14 @@ function renderStars(rating) {
 
 function abrirModalNuevo() {
   if (state.tabActual === 'restaurantes') {
-    $('#modal-rest-title').textContent = '🍽️ Nuevo Restaurante';
+    $('#modal-rest-title').textContent = 'Nuevo Restaurante';
     $('#form-restaurante').reset();
     $('#rest-id').value = '';
     setRating('rest-rating', 0);
     toggleDetalles('rest', 'pendiente');
     $('#modal-restaurante').hidden = false;
   } else {
-    $('#modal-act-title').textContent = '🎬 Nueva Actividad';
+    $('#modal-act-title').textContent = 'Nueva Actividad';
     $('#form-actividad').reset();
     $('#act-id').value = '';
     setRating('act-rating', 0);
@@ -350,7 +350,7 @@ function editarItem(id) {
     const item = state.restaurantes.find(r => r.id === id);
     if (!item) return;
 
-    $('#modal-rest-title').textContent = '✏️ Editar Restaurante';
+    $('#modal-rest-title').textContent = 'Editar Restaurante';
     $('#rest-id').value = item.id;
     $('#rest-nombre').value = item.nombre || '';
     $('#rest-ubicacion').value = item.ubicacion || '';
@@ -363,7 +363,7 @@ function editarItem(id) {
     const item = state.actividades.find(a => a.id === id);
     if (!item) return;
 
-    $('#modal-act-title').textContent = '✏️ Editar Actividad';
+    $('#modal-act-title').textContent = 'Editar Actividad';
     $('#act-id').value = item.id;
     $('#act-nombre').value = item.nombre || '';
     $('#act-tipo').value = item.tipo || '🎬 Cine';
