@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🍽️ Nuestros Lugares</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- ============ PANTALLA DE LOGIN ============ -->
+  <div id="login-screen" class="login-screen">
+    <div class="login-card">
+      <div class="login-emoji">🔐</div>
+      <h1>Nuestros Lugares</h1>
+      <p class="login-subtitle">Ingresá la contraseña para continuar</p>
+      <form id="login-form">
+        <div class="input-group">
+          <input type="password" id="password-input" placeholder="Contraseña..." autocomplete="off" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-login">
+          Entrar ✨
+        </button>
+        <p id="login-error" class="login-error" hidden>Contraseña incorrecta 😬</p>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============ APP PRINCIPAL ============ -->
+  <div id="app" class="app" hidden>
+    
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <h1 class="logo">🍽️ Nuestros Lugares</h1>
+        <button class="btn btn-logout" id="btn-logout" title="Cerrar sesión">
+          Salir 👋
+        </button>
+      </div>
+    </header>
+
+    <!-- Tabs -->
+    <nav class="tabs">
+      <button class="tab active" data-tab="restaurantes">
+        <span class="tab-icon">🍕</span>
+        <span class="tab-text">Restaurantes</span>
+      </button>
+      <button class="tab" data-tab="actividades">
+        <span class="tab-icon">🎬</span>
+        <span class="tab-text">Actividades</span>
+      </button>
+    </nav>
+
+    <!-- Filtros -->
+    <div class="filters">
+      <button class="filter-btn active" data-filter="todos">📋 Todos</button>
+      <button class="filter-btn" data-filter="pendiente">⏳ Pendientes</button>
+      <button class="filter-btn" data-filter="visitado">✅ Visitados</button>
+    </div>
+
+    <!-- Contenido -->
+    <main class="main-content">
+      
+      <!-- Lista de items -->
+      <div id="items-list" class="items-list">
+        <!-- Los items se renderizan dinámicamente -->
+      </div>
+
+      <!-- Estado vacío -->
+      <div id="empty-state" class="empty-state" hidden>
+        <div class="empty-emoji">🗺️</div>
+        <h3>¡Aún no hay nada aquí!</h3>
+        <p>Agregá un lugar nuevo para empezar la aventura</p>
+      </div>
+
+      <!-- Loading -->
+      <div id="loading" class="loading" hidden>
+        <div class="spinner"></div>
+        <p>Cargando...</p>
+      </div>
+
+    </main>
+
+    <!-- Botón flotante agregar -->
+    <button id="btn-add" class="fab" title="Agregar nuevo">
+      <span>+</span>
+    </button>
+
+    <!-- ============ MODAL RESTAURANTE ============ -->
+    <div id="modal-restaurante" class="modal-overlay" hidden>
+      <div class="modal">
+        <div class="modal-header">
+          <h2 id="modal-rest-title">🍽️ Nuevo Restaurante</h2>
+          <button class="modal-close" data-close="modal-restaurante">&times;</button>
+        </div>
+        <form id="form-restaurante" class="modal-form">
+          <input type="hidden" id="rest-id">
+          
+          <div class="form-group">
+            <label for="rest-nombre">Nombre del lugar</label>
+            <input type="text" id="rest-nombre" placeholder="Ej: La Parrilla de Juan" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="rest-ubicacion">📍 Ubicación</label>
+            <input type="text" id="rest-ubicacion" placeholder="Ej: Av. Corrientes 1234, CABA">
+          </div>
+          
+          <div class="form-group">
+            <label for="rest-estado">Estado</label>
+            <select id="rest-estado">
+              <option value="pendiente">⏳ Pendiente</option>
+              <option value="visitado">✅ Visitado</option>
+            </select>
+          </div>
+          
+          <div id="rest-detalles-visitado">
+            <div class="form-group">
+              <label>Calificación</label>
+              <div class="rating-input" id="rest-rating">
+                <span class="star" data-value="1">★</span>
+                <span class="star" data-value="2">★</span>
+                <span class="star" data-value="3">★</span>
+                <span class="star" data-value="4">★</span>
+                <span class="star" data-value="5">★</span>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="rest-descripcion">📝 ¿Qué comimos? / Opinión</label>
+              <textarea id="rest-descripcion" rows="3" placeholder="Ej: Pedimos unas empanadas increíbles y una milanesa napolitana 🤤"></textarea>
+            </div>
+          </div>
+          
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" data-close="modal-restaurante">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar 💾</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============ MODAL ACTIVIDAD ============ -->
+    <div id="modal-actividad" class="modal-overlay" hidden>
+      <div class="modal">
+        <div class="modal-header">
+          <h2 id="modal-act-title">🎬 Nueva Actividad</h2>
+          <button class="modal-close" data-close="modal-actividad">&times;</button>
+        </div>
+        <form id="form-actividad" class="modal-form">
+          <input type="hidden" id="act-id">
+          
+          <div class="form-group">
+            <label for="act-nombre">Nombre</label>
+            <input type="text" id="act-nombre" placeholder="Ej: Concierto de Coldplay" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="act-tipo">Tipo de actividad</label>
+            <select id="act-tipo">
+              <option value="🎬 Cine">🎬 Cine</option>
+              <option value="🎵 Concierto">🎵 Concierto</option>
+              <option value="🌳 Parque">🌳 Parque</option>
+              <option value="🎭 Teatro">🎭 Teatro</option>
+              <option value="🎨 Museo">🎨 Museo</option>
+              <option value="🎳 Entretenimiento">🎳 Entretenimiento</option>
+              <option value="🏖️ Paseo">🏖️ Paseo</option>
+              <option value="📚 Otro">📚 Otro</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="act-ubicacion">📍 Ubicación</label>
+            <input type="text" id="act-ubicacion" placeholder="Ej: Movistar Arena">
+          </div>
+          
+          <div class="form-group">
+            <label for="act-estado">Estado</label>
+            <select id="act-estado">
+              <option value="pendiente">⏳ Pendiente</option>
+              <option value="visitado">✅ Realizada</option>
+            </select>
+          </div>
+          
+          <div id="act-detalles-visitado">
+            <div class="form-group">
+              <label>Calificación</label>
+              <div class="rating-input" id="act-rating">
+                <span class="star" data-value="1">★</span>
+                <span class="star" data-value="2">★</span>
+                <span class="star" data-value="3">★</span>
+                <span class="star" data-value="4">★</span>
+                <span class="star" data-value="5">★</span>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="act-descripcion">📝 Opinión</label>
+              <textarea id="act-descripcion" rows="3" placeholder="Ej: ¡Estuvo increíble! Lloramos con Fix You 😭🎶"></textarea>
+            </div>
+          </div>
+          
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" data-close="modal-actividad">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar 💾</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============ MODAL CONFIRMAR ELIMINAR ============ -->
+    <div id="modal-delete" class="modal-overlay" hidden>
+      <div class="modal modal-small">
+        <div class="modal-header">
+          <h2>🗑️ ¿Eliminar?</h2>
+          <button class="modal-close" data-close="modal-delete">&times;</button>
+        </div>
+        <p class="delete-msg">¿Seguras que quieren eliminar este lugar? No se puede deshacer.</p>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" data-close="modal-delete">No, dejá</button>
+          <button class="btn btn-danger" id="btn-confirm-delete">Sí, eliminar 🗑️</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
