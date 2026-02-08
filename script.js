@@ -86,8 +86,10 @@ function initEventListeners() {
   });
 
   // Ratings
-  initRatings('rest-rating');
-  initRatings('act-rating');
+  initRatings('rest-rating-alex');
+  initRatings('rest-rating-vane');
+  initRatings('act-rating-alex');
+  initRatings('act-rating-vane');
 
   // Confirmar eliminar
   $('#btn-confirm-delete').addEventListener('click', handleConfirmDelete);
@@ -229,8 +231,14 @@ function normalizeItem(item) {
   } else {
     item.estado = 'pendiente';
   }
-  // Asegurar calificacion como número
-  item.calificacion = parseInt(item.calificacion) || 0;
+  // Asegurar calificaciones como número
+  item.calificacionAlex = parseInt(item.calificacionAlex || item.calificacion_alex) || 0;
+  item.calificacionVane = parseInt(item.calificacionVane || item.calificacion_vane) || 0;
+  // Compatibilidad: si solo hay calificacion antigua, usarla para ambos
+  if (!item.calificacionAlex && !item.calificacionVane && item.calificacion) {
+    item.calificacionAlex = parseInt(item.calificacion) || 0;
+    item.calificacionVane = parseInt(item.calificacion) || 0;
+  }
   return item;
 }
 
@@ -293,7 +301,8 @@ function renderItems() {
 }
 
 function renderRestauranteCard(item) {
-  const estrellas = renderStars(item.calificacion);
+  const estrellasAlex = renderStars(item.calificacionAlex);
+  const estrellasVane = renderStars(item.calificacionVane);
   const badge = item.estado === 'visitado'
     ? '<span class="card-badge badge-visitado">Visitado</span>'
     : '<span class="card-badge badge-pendiente">Por visitar</span>';
@@ -306,7 +315,16 @@ function renderRestauranteCard(item) {
       </div>
       ${item.ubicacion ? `<div class="card-location"><span class="loc-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></span>${escapeHtml(item.ubicacion)}</div>` : ''}
       ${item.estado === 'visitado' ? `
-        <div class="card-rating">${estrellas}</div>
+        <div class="card-dual-rating">
+          <div class="card-rating-person">
+            <span class="rating-label">Alex</span>
+            <div class="card-rating">${estrellasAlex}</div>
+          </div>
+          <div class="card-rating-person">
+            <span class="rating-label">Vane</span>
+            <div class="card-rating">${estrellasVane}</div>
+          </div>
+        </div>
         ${item.descripcion ? `<div class="card-description">${escapeHtml(item.descripcion)}</div>` : ''}
       ` : ''}
       <div class="card-actions">
@@ -324,7 +342,8 @@ function renderRestauranteCard(item) {
 }
 
 function renderActividadCard(item) {
-  const estrellas = renderStars(item.calificacion);
+  const estrellasAlex = renderStars(item.calificacionAlex);
+  const estrellasVane = renderStars(item.calificacionVane);
   const badge = item.estado === 'visitado'
     ? '<span class="card-badge badge-visitado">Realizada</span>'
     : '<span class="card-badge badge-pendiente">Pendiente</span>';
@@ -338,7 +357,16 @@ function renderActividadCard(item) {
       ${item.tipo ? `<span class="card-type">${escapeHtml(item.tipo)}</span>` : ''}
       ${item.ubicacion ? `<div class="card-location"><span class="loc-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></span>${escapeHtml(item.ubicacion)}</div>` : ''}
       ${item.estado === 'visitado' ? `
-        <div class="card-rating">${estrellas}</div>
+        <div class="card-dual-rating">
+          <div class="card-rating-person">
+            <span class="rating-label">Alex</span>
+            <div class="card-rating">${estrellasAlex}</div>
+          </div>
+          <div class="card-rating-person">
+            <span class="rating-label">Vane</span>
+            <div class="card-rating">${estrellasVane}</div>
+          </div>
+        </div>
         ${item.descripcion ? `<div class="card-description">${escapeHtml(item.descripcion)}</div>` : ''}
       ` : ''}
       <div class="card-actions">
@@ -370,14 +398,16 @@ function abrirModalNuevo() {
     $('#modal-rest-title').textContent = 'Nuevo Restaurante';
     $('#form-restaurante').reset();
     $('#rest-id').value = '';
-    setRating('rest-rating', 0);
+    setRating('rest-rating-alex', 0);
+    setRating('rest-rating-vane', 0);
     toggleDetalles('rest', 'pendiente');
     $('#modal-restaurante').hidden = false;
   } else {
     $('#modal-act-title').textContent = 'Nueva Actividad';
     $('#form-actividad').reset();
     $('#act-id').value = '';
-    setRating('act-rating', 0);
+    setRating('act-rating-alex', 0);
+    setRating('act-rating-vane', 0);
     toggleDetalles('act', 'pendiente');
     $('#modal-actividad').hidden = false;
   }
@@ -398,7 +428,8 @@ function editarItem(id, type) {
     $('#rest-ubicacion').value = item.ubicacion || '';
     $('#rest-estado').value = item.estado || 'pendiente';
     $('#rest-descripcion').value = item.descripcion || '';
-    setRating('rest-rating', item.calificacion || 0);
+    setRating('rest-rating-alex', item.calificacionAlex || 0);
+    setRating('rest-rating-vane', item.calificacionVane || 0);
     toggleDetalles('rest', item.estado);
     $('#modal-restaurante').hidden = false;
   } else {
@@ -412,7 +443,8 @@ function editarItem(id, type) {
     $('#act-ubicacion').value = item.ubicacion || '';
     $('#act-estado').value = item.estado || 'pendiente';
     $('#act-descripcion').value = item.descripcion || '';
-    setRating('act-rating', item.calificacion || 0);
+    setRating('act-rating-alex', item.calificacionAlex || 0);
+    setRating('act-rating-vane', item.calificacionVane || 0);
     toggleDetalles('act', item.estado);
     $('#modal-actividad').hidden = false;
   }
@@ -481,7 +513,8 @@ async function handleGuardarRestaurante(e) {
     ubicacion: $('#rest-ubicacion').value.trim(),
     estado: $('#rest-estado').value,
     descripcion: $('#rest-descripcion').value.trim(),
-    calificacion: getRating('rest-rating')
+    calificacionAlex: getRating('rest-rating-alex'),
+    calificacionVane: getRating('rest-rating-vane')
   };
 
   if (!item.nombre) return;
@@ -524,7 +557,8 @@ async function handleGuardarActividad(e) {
     ubicacion: $('#act-ubicacion').value.trim(),
     estado: $('#act-estado').value,
     descripcion: $('#act-descripcion').value.trim(),
-    calificacion: getRating('act-rating')
+    calificacionAlex: getRating('act-rating-alex'),
+    calificacionVane: getRating('act-rating-vane')
   };
 
   if (!item.nombre) return;
