@@ -1299,10 +1299,10 @@ body {
 
 .btn-girar-icon {
   font-size: 18px;
-  transition: transform 0.3s;
+  display: inline-block;
 }
 
-.btn-girar:hover:not(:disabled) .btn-girar-icon {
+.btn-girar-icon.do-spin {
   animation: spin 0.6s ease;
 }
 

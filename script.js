@@ -98,6 +98,17 @@ function initEventListeners() {
   $('#btn-ruleta').addEventListener('click', abrirRuleta);
   $('#btn-girar').addEventListener('click', girarRuleta);
 
+  // Spin del icono solo al pasar el mouse, se detiene al terminar la animación
+  const girarIcon = document.querySelector('.btn-girar-icon');
+  if (girarIcon) {
+    $('#btn-girar').addEventListener('mouseenter', () => {
+      if (!$('#btn-girar').disabled) girarIcon.classList.add('do-spin');
+    });
+    girarIcon.addEventListener('animationend', () => {
+      girarIcon.classList.remove('do-spin');
+    });
+  }
+
   // Cerrar modal al hacer clic fuera
   $$('.modal-overlay').forEach(overlay => {
     overlay.addEventListener('click', (e) => {
