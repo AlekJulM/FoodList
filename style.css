@@ -1302,17 +1302,13 @@ body {
   transition: transform 0.3s;
 }
 
-.btn-girar:hover .btn-girar-icon {
+.btn-girar:hover:not(:disabled) .btn-girar-icon {
   animation: spin 0.6s ease;
 }
 
 .btn-girar:disabled {
   opacity: 0.5;
   pointer-events: none;
-}
-
-.btn-girar.girando .btn-girar-icon {
-  animation: spin 0.5s linear infinite;
 }
 
 .ruleta-confetti {

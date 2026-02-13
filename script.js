@@ -723,7 +723,6 @@ function abrirRuleta() {
   result.hidden = true;
   empty.hidden = true;
   btn.disabled = false;
-  btn.classList.remove('girando');
   btn.querySelector('span').textContent = '\u00a1Girar!';
   if (selector) selector.classList.remove('winner');
 
@@ -772,7 +771,6 @@ function girarRuleta() {
   const selector = document.querySelector('.ruleta-selector');
 
   btn.disabled = true;
-  btn.classList.add('girando');
   btn.querySelector('span').textContent = 'Girando...';
   result.hidden = true;
   if (selector) selector.classList.remove('winner');
@@ -852,7 +850,6 @@ function girarRuleta() {
       ruletaGirando = false;
       ruletaAnimId = null;
       btn.disabled = false;
-      btn.classList.remove('girando');
       btn.querySelector('span').textContent = '\u00a1Girar de nuevo!';
 
       if (selector) selector.classList.add('winner');
