@@ -801,7 +801,7 @@ function buildRuletaTrack(pendientes, track) {
   track.innerHTML = html;
   // Centrar el primer item según medidas reales del DOM (desktop/mobile)
   const { startY } = getRuletaMetrics(track);
-  track.style.transform = `translateY(${startY}px)`;
+  track.style.transform = `translate3d(0, ${startY}px, 0)`;
 }
 
 function getRuletaMetrics(track) {
@@ -847,20 +847,28 @@ function girarRuleta() {
   const winnerIdx = Math.floor(Math.random() * pendientes.length);
   const winner = pendientes[winnerIdx];
 
-  const poolSize = pendientes.length;
-  const fullRotations = 5 + Math.floor(Math.random() * 3); // 5-7 vueltas
+  const totalItems = 52;
+  const winnerItemIndex = totalItems - 3;
 
-  // PRE-CONSTRUIR toda la pista de una vez (sin cambios DOM durante animación)
-  // Item en DOM index i muestra pendientes[i % poolSize]
-  // Para que winnerItemIndex muestre pendientes[winnerIdx]:
-  //   winnerItemIndex % poolSize === winnerIdx
-  // Solución: winnerItemIndex = fullRotations * poolSize + winnerIdx
-  const winnerItemIndex = fullRotations * poolSize + winnerIdx;
-  const totalItems = winnerItemIndex + 4; // buffer después del ganador
+  // Pista acotada para evitar glitches de render en móvil durante el giro.
+  const nonWinnerItems = pendientes.filter(p => String(p.id) !== String(winner.id));
   let html = '';
+  let lastName = '';
   for (let i = 0; i < totalItems; i++) {
-    const dataIdx = i % poolSize;
-    html += `<div class="ruleta-item">${escapeHtml(pendientes[dataIdx].nombre)}</div>`;
+    let item;
+    if (i === winnerItemIndex) {
+      item = winner;
+    } else {
+      const source = nonWinnerItems.length > 0 ? nonWinnerItems : pendientes;
+      item = source[Math.floor(Math.random() * source.length)];
+      if (source.length > 1 && item.nombre === lastName) {
+        const currentIndex = source.indexOf(item);
+        const offset = 1 + Math.floor(Math.random() * (source.length - 1));
+        item = source[(currentIndex + offset) % source.length];
+      }
+    }
+    lastName = item.nombre;
+    html += `<div class="ruleta-item">${escapeHtml(item.nombre)}</div>`;
   }
   track.innerHTML = html;
 
@@ -871,7 +879,7 @@ function girarRuleta() {
   const endY = startY - winnerItemIndex * itemH;
   const totalDistance = startY - endY;
 
-  track.style.transform = `translateY(${startY}px)`;
+  track.style.transform = `translate3d(0, ${startY}px, 0)`;
 
   const totalDuration = 4000 + Math.random() * 1500;
   const startTime = performance.now();
@@ -884,7 +892,7 @@ function girarRuleta() {
     const eased = 1 - Math.pow(1 - progress, 4);
 
     const currentY = startY - totalDistance * eased;
-    track.style.transform = `translateY(${currentY}px)`;
+    track.style.transform = `translate3d(0, ${currentY}px, 0)`;
 
     if (progress < 1) {
       ruletaAnimId = requestAnimationFrame(animate);
