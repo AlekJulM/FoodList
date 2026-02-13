@@ -94,6 +94,10 @@ function initEventListeners() {
   // Confirmar eliminar
   $('#btn-confirm-delete').addEventListener('click', handleConfirmDelete);
 
+  // Ruleta
+  $('#btn-ruleta').addEventListener('click', abrirRuleta);
+  $('#btn-girar').addEventListener('click', girarRuleta);
+
   // Cerrar modal al hacer clic fuera
   $$('.modal-overlay').forEach(overlay => {
     overlay.addEventListener('click', (e) => {
@@ -697,4 +701,115 @@ function updateCounter(allItems, filteredItems) {
 
   const showing = filteredItems.length;
   el.textContent = `${showing} ${tab} \u00b7 ${visitados} completados \u00b7 ${pendientes} pendientes`;
+}
+
+// ============ RULETA ============
+
+let ruletaGirando = false;
+
+function abrirRuleta() {
+  const pendientes = state.restaurantes.filter(r => r.estado === 'pendiente');
+  const track = $('#ruleta-track');
+  const result = $('#ruleta-result');
+  const empty = $('#ruleta-empty');
+  const btn = $('#btn-girar');
+
+  result.hidden = true;
+  empty.hidden = true;
+  btn.disabled = false;
+  btn.querySelector('span').textContent = '\u00a1Girar!';
+  track.style.transform = 'translateY(0)';
+  track.style.transition = 'none';
+
+  if (pendientes.length === 0) {
+    empty.hidden = false;
+    btn.disabled = true;
+    track.innerHTML = '';
+  } else {
+    // Llenar track con items
+    track.innerHTML = pendientes.map(r => 
+      `<div class="ruleta-item">${escapeHtml(r.nombre)}</div>`
+    ).join('');
+  }
+
+  $('#modal-ruleta').hidden = false;
+}
+
+function girarRuleta() {
+  if (ruletaGirando) return;
+
+  const pendientes = state.restaurantes.filter(r => r.estado === 'pendiente');
+  if (pendientes.length === 0) return;
+
+  ruletaGirando = true;
+  const btn = $('#btn-girar');
+  const track = $('#ruleta-track');
+  const result = $('#ruleta-result');
+
+  btn.disabled = true;
+  btn.querySelector('span').textContent = 'Girando...';
+  result.hidden = true;
+
+  // Crear track largo para la animación (repetir items muchas veces + ganador)
+  const winnerIdx = Math.floor(Math.random() * pendientes.length);
+  const winner = pendientes[winnerIdx];
+  const repeats = 6; // Cuántas vueltas completas
+  const totalItems = pendientes.length * repeats + winnerIdx;
+  
+  let html = '';
+  for (let i = 0; i < pendientes.length * repeats; i++) {
+    html += `<div class="ruleta-item">${escapeHtml(pendientes[i % pendientes.length].nombre)}</div>`;
+  }
+  // Agregar hasta el ganador inclusive
+  for (let i = 0; i <= winnerIdx; i++) {
+    html += `<div class="ruleta-item ${i === winnerIdx ? 'highlight' : ''}">${escapeHtml(pendientes[i].nombre)}</div>`;
+  }
+
+  track.innerHTML = html;
+  track.style.transition = 'none';
+  track.style.transform = 'translateY(0)';
+
+  // Forzar reflow
+  track.offsetHeight;
+
+  // Calcular distancia: cada item mide 60px
+  const itemHeight = 60;
+  const targetOffset = totalItems * itemHeight;
+  const duration = 3000 + Math.random() * 1000;
+
+  track.style.transition = `transform ${duration}ms cubic-bezier(0.15, 0.85, 0.25, 1)`;
+  track.style.transform = `translateY(-${targetOffset}px)`;
+
+  setTimeout(() => {
+    ruletaGirando = false;
+    btn.disabled = false;
+    btn.querySelector('span').textContent = '\u00a1Girar de nuevo!';
+
+    // Mostrar resultado
+    $('#ruleta-winner').textContent = winner.nombre;
+    $('#ruleta-winner-loc').textContent = winner.ubicacion || '';
+    result.hidden = false;
+
+    // Confetti!
+    lanzarConfetti();
+  }, duration + 200);
+}
+
+function lanzarConfetti() {
+  const colors = ['#f0c27f', '#d4587a', '#8db580', '#b478dc', '#e8956a', '#a0d490'];
+  const shapes = ['\u2605', '\u2726', '\u2764', '\u2728', '\u25cf'];
+  
+  for (let i = 0; i < 30; i++) {
+    const el = document.createElement('div');
+    el.className = 'ruleta-confetti';
+    el.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.top = '-20px';
+    el.style.fontSize = (10 + Math.random() * 16) + 'px';
+    el.style.color = colors[Math.floor(Math.random() * colors.length)];
+    el.style.animationDelay = (Math.random() * 0.8) + 's';
+    el.style.animationDuration = (2 + Math.random() * 2) + 's';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 5000);
+  }
 }
