@@ -756,6 +756,7 @@ let ruletaAnimId = null;
 
 function abrirRuleta() {
   const pendientes = getPendientesForRuleta();
+  const modal = $('#modal-ruleta');
   const track = $('#ruleta-track');
   const result = $('#ruleta-result');
   const empty = $('#ruleta-empty');
@@ -771,6 +772,7 @@ function abrirRuleta() {
   btn.disabled = false;
   btn.querySelector('.btn-girar-text').textContent = '\u00a1Girar!';
   if (selector) selector.classList.remove('winner');
+  modal.hidden = false;
 
   if (pendientes.length === 0) {
     empty.hidden = false;
@@ -779,8 +781,6 @@ function abrirRuleta() {
   } else {
     buildRuletaTrack(pendientes, track);
   }
-
-  $('#modal-ruleta').hidden = false;
 }
 
 function getPendientesForRuleta() {
@@ -799,8 +799,31 @@ function buildRuletaTrack(pendientes, track) {
     html += `<div class="ruleta-item">${escapeHtml(r.nombre)}</div>`;
   }
   track.innerHTML = html;
-  // Centrar el primer item
-  track.style.transform = `translateY(70px)`;
+  // Centrar el primer item según medidas reales del DOM (desktop/mobile)
+  const { startY } = getRuletaMetrics(track);
+  track.style.transform = `translateY(${startY}px)`;
+}
+
+function getRuletaMetrics(track) {
+  const windowEl = track.closest('.ruleta-window');
+  const selector = windowEl ? windowEl.querySelector('.ruleta-selector') : null;
+  const firstItem = track.querySelector('.ruleta-item');
+
+  const itemRectH = firstItem ? firstItem.getBoundingClientRect().height : 0;
+  const itemCssH = firstItem ? parseFloat(getComputedStyle(firstItem).height) : 0;
+  const itemH = itemRectH || itemCssH || 70;
+
+  const windowRect = windowEl ? windowEl.getBoundingClientRect() : { top: 0, height: 0 };
+  const windowCssH = windowEl ? parseFloat(getComputedStyle(windowEl).height) : 0;
+  const windowH = windowRect.height || windowCssH || 210;
+  const selectorRect = selector ? selector.getBoundingClientRect() : null;
+
+  const selectorCenter = (selectorRect && windowRect.height)
+    ? (selectorRect.top - windowRect.top) + (selectorRect.height / 2)
+    : (windowH / 2);
+
+  const startY = selectorCenter - (itemH / 2);
+  return { itemH, startY };
 }
 
 function girarRuleta() {
@@ -819,13 +842,6 @@ function girarRuleta() {
   btn.querySelector('.btn-girar-text').textContent = 'Girando...';
   result.hidden = true;
   if (selector) selector.classList.remove('winner');
-
-  const ITEM_H = 70;
-  const WINDOW_H = 210;
-  // El selector está centrado en la ventana: top 50% - 28px = posición 77px
-  // El centro del selector = WINDOW_H / 2 = 105px
-  // Para centrar un item (70px) en el selector: offset = 105 - 35 = 70px
-  const centerOffset = (WINDOW_H - ITEM_H) / 2;
 
   // Elegir ganador
   const winnerIdx = Math.floor(Math.random() * pendientes.length);
@@ -848,10 +864,11 @@ function girarRuleta() {
   }
   track.innerHTML = html;
 
+  const { itemH, startY } = getRuletaMetrics(track);
+
   // Posición inicial: primer item centrado
-  const startY = centerOffset;
   // Posición final: el item ganador centrado en el selector
-  const endY = centerOffset - winnerItemIndex * ITEM_H;
+  const endY = startY - winnerItemIndex * itemH;
   const totalDistance = startY - endY;
 
   track.style.transform = `translateY(${startY}px)`;
