@@ -835,9 +835,12 @@ function girarRuleta() {
   const fullRotations = 5 + Math.floor(Math.random() * 3); // 5-7 vueltas
 
   // PRE-CONSTRUIR toda la pista de una vez (sin cambios DOM durante animación)
-  // Buffer inicial de 1 item visible arriba + vueltas completas + ganador + buffer final
-  const bufferBefore = 1;
-  const totalItems = bufferBefore + fullRotations * poolSize + winnerIdx + 4;
+  // Item en DOM index i muestra pendientes[i % poolSize]
+  // Para que winnerItemIndex muestre pendientes[winnerIdx]:
+  //   winnerItemIndex % poolSize === winnerIdx
+  // Solución: winnerItemIndex = fullRotations * poolSize + winnerIdx
+  const winnerItemIndex = fullRotations * poolSize + winnerIdx;
+  const totalItems = winnerItemIndex + 4; // buffer después del ganador
   let html = '';
   for (let i = 0; i < totalItems; i++) {
     const dataIdx = i % poolSize;
@@ -845,8 +848,6 @@ function girarRuleta() {
   }
   track.innerHTML = html;
 
-  // El item ganador en el DOM
-  const winnerItemIndex = bufferBefore + fullRotations * poolSize + winnerIdx;
   // Posición inicial: primer item centrado
   const startY = centerOffset;
   // Posición final: el item ganador centrado en el selector
