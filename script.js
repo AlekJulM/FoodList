@@ -91,6 +91,9 @@ function initEventListeners() {
   initRatings('act-rating-alex');
   initRatings('act-rating-vane');
 
+  // Search
+  $('#search-input').addEventListener('input', renderItems);
+
   // Confirmar eliminar
   $('#btn-confirm-delete').addEventListener('click', handleConfirmDelete);
 
@@ -282,6 +285,12 @@ function renderItems() {
     filtered = items.filter(i => i.estado === state.filtroActual);
   }
 
+  // Búsqueda por nombre
+  const query = ($('#search-input').value || '').trim().toLowerCase();
+  if (query) {
+    filtered = filtered.filter(i => (i.nombre || '').toLowerCase().includes(query));
+  }
+
   // Update counter
   updateCounter(items, filtered);
 
@@ -323,6 +332,7 @@ function renderRestauranteCard(item) {
     : '<span class="card-badge badge-pendiente">Por visitar</span>';
 
   const claseBadge = renderClaseBadge(item.clase);
+  const fechaHtml = item.fecha ? `<div class="card-date">${timeAgo(item.fecha)}</div>` : '';
 
   return `
     <div class="item-card ${item.estado}">
@@ -333,6 +343,7 @@ function renderRestauranteCard(item) {
           ${badge}
         </div>
       </div>
+      ${item.categoria ? `<span class="card-type">${escapeHtml(item.categoria)}</span>` : ''}
       ${item.ubicacion ? `<div class="card-location"><span class="loc-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></span>${escapeHtml(item.ubicacion)}</div>` : ''}
       ${item.estado === 'visitado' ? `
         <div class="card-dual-rating">
@@ -347,6 +358,7 @@ function renderRestauranteCard(item) {
         </div>
         ${item.descripcion ? `<div class="card-description">${escapeHtml(item.descripcion)}</div>` : ''}
       ` : ''}
+      ${fechaHtml}
       <div class="card-actions">
         <button class="card-btn card-btn-edit" data-id="${item.id}" data-type="restaurantes">
           <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -369,6 +381,7 @@ function renderActividadCard(item) {
     : '<span class="card-badge badge-pendiente">Pendiente</span>';
 
   const claseBadge = renderClaseBadge(item.clase);
+  const fechaHtml = item.fecha ? `<div class="card-date">${timeAgo(item.fecha)}</div>` : '';
 
   return `
     <div class="item-card ${item.estado}">
@@ -394,6 +407,7 @@ function renderActividadCard(item) {
         </div>
         ${item.descripcion ? `<div class="card-description">${escapeHtml(item.descripcion)}</div>` : ''}
       ` : ''}
+      ${fechaHtml}
       <div class="card-actions">
         <button class="card-btn card-btn-edit" data-id="${item.id}" data-type="actividades">
           <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -435,6 +449,7 @@ function abrirModalNuevo() {
     $('#modal-rest-title').textContent = 'Nuevo Restaurante';
     $('#form-restaurante').reset();
     $('#rest-id').value = '';
+    $('#rest-categoria').value = '';
     setRating('rest-rating-alex', 0);
     setRating('rest-rating-vane', 0);
     toggleDetalles('rest', 'pendiente');
@@ -462,6 +477,7 @@ function editarItem(id, type) {
     $('#modal-rest-title').textContent = 'Editar Restaurante';
     $('#rest-id').value = item.id;
     $('#rest-nombre').value = item.nombre || '';
+    $('#rest-categoria').value = item.categoria || '';
     $('#rest-ubicacion').value = item.ubicacion || '';
     $('#rest-clase').value = item.clase || '';
     $('#rest-estado').value = item.estado || 'pendiente';
@@ -549,6 +565,7 @@ async function handleGuardarRestaurante(e) {
   const id = $('#rest-id').value;
   const item = {
     nombre: $('#rest-nombre').value.trim(),
+    categoria: $('#rest-categoria').value,
     ubicacion: $('#rest-ubicacion').value.trim(),
     clase: $('#rest-clase').value,
     estado: $('#rest-estado').value,
@@ -675,6 +692,26 @@ function mostrarLoading(show) {
     itemsList.innerHTML = '';
     emptyState.hidden = true;
   }
+}
+
+function timeAgo(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d)) return '';
+  const now = new Date();
+  const diff = now - d;
+  const mins = Math.floor(diff / 60000);
+  const hrs = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  const months = Math.floor(days / 30);
+  const years = Math.floor(days / 365);
+  if (mins < 1) return 'Justo ahora';
+  if (mins < 60) return `Hace ${mins} min`;
+  if (hrs < 24) return `Hace ${hrs}h`;
+  if (days === 1) return 'Ayer';
+  if (days < 30) return `Hace ${days} días`;
+  if (months < 12) return `Hace ${months} mes${months > 1 ? 'es' : ''}`;
+  return `Hace ${years} año${years > 1 ? 's' : ''}`;
 }
 
 function escapeHtml(text) {

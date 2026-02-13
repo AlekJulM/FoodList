@@ -86,6 +86,12 @@
       <button class="filter-btn" data-filter="visitado">Visitados</button>
     </div>
 
+    <!-- Buscador -->
+    <div class="search-bar">
+      <svg class="search-icon" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input type="text" id="search-input" placeholder="Buscar por nombre..." autocomplete="off">
+    </div>
+
     <!-- Counter -->
     <div class="counter-bar">
       <span id="counter-text" class="counter-text"></span>
@@ -142,6 +148,28 @@
           <div class="form-group">
             <label for="rest-nombre">Nombre del lugar</label>
             <input type="text" id="rest-nombre" placeholder="Ej: La Parrilla de Juan" required>
+          </div>
+
+          <div class="form-group">
+            <label for="rest-categoria">Categoría</label>
+            <select id="rest-categoria">
+              <option value="">— Sin categoría —</option>
+              <option value="🍔 Hamburguesas">Hamburguesas</option>
+              <option value="🍕 Pizzas">Pizzas</option>
+              <option value="🍣 Japonesa">Japonesa</option>
+              <option value="🌮 Mexicana">Mexicana</option>
+              <option value="🥘 Peruana">Peruana</option>
+              <option value="🍝 Italiana">Italiana</option>
+              <option value="🥩 Parrilla">Parrilla</option>
+              <option value="🥗 Saludable">Saludable</option>
+              <option value="🍰 Postres">Postres</option>
+              <option value="☕ Café">Café</option>
+              <option value="🍽️ Criolla">Criolla</option>
+              <option value="🥢 China">China</option>
+              <option value="🍻 Bar">Bar</option>
+              <option value="🌎 Internacional">Internacional</option>
+              <option value="🍽️ Otro">Otro</option>
+            </select>
           </div>
           
           <div class="form-group">
