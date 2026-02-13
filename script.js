@@ -794,7 +794,6 @@ function getPendientesForRuleta() {
 
 function buildRuletaTrack(pendientes, track) {
   // Crear suficientes copias para llenar la ventana + buffer
-  // Ventana = 210px, item = 70px → 3 visibles + 2 buffer = 5 mínimo
   const copies = Math.max(8, Math.ceil(10 / pendientes.length) * pendientes.length);
   let html = '';
   for (let i = 0; i < copies; i++) {
@@ -831,68 +830,49 @@ function girarRuleta() {
   const winnerIdx = Math.floor(Math.random() * pendientes.length);
   const winner = pendientes[winnerIdx];
 
-  // Crear un pool circular grande de items
   const poolSize = pendientes.length;
-  // Necesitamos suficientes items visibles en el DOM
-  const domItems = Math.max(12, poolSize * 3);
+  const fullRotations = 5 + Math.floor(Math.random() * 3); // 5-7 vueltas
+
+  // PRE-CONSTRUIR toda la pista de una vez (sin cambios DOM durante animación)
+  // Necesitamos: items iniciales visibles + vueltas completas + llegar al ganador + buffer
+  const totalItems = 3 + fullRotations * poolSize + winnerIdx + 3;
   let html = '';
-  for (let i = 0; i < domItems; i++) {
-    html += `<div class="ruleta-item">${escapeHtml(pendientes[i % poolSize].nombre)}</div>`;
+  for (let i = 0; i < totalItems; i++) {
+    const dataIdx = i % poolSize;
+    html += `<div class="ruleta-item">${escapeHtml(pendientes[dataIdx].nombre)}</div>`;
   }
   track.innerHTML = html;
 
-  // Animación con requestAnimationFrame
-  // Posición = offset en px (posición lógica, puede crecer infinitamente)
-  let pos = 0;
-  const cycleH = poolSize * ITEM_H; // Una vuelta completa
-  
-  // Velocidad: empieza rápida, desacelera
-  const totalDuration = 4000 + Math.random() * 1500; // 4-5.5 segundos
-  // Distancia total que recorrer: varias vueltas + parar en el ganador
-  const fullRotations = 5 + Math.floor(Math.random() * 3); // 5-7 vueltas
-  const targetPos = fullRotations * cycleH + winnerIdx * ITEM_H;
-  
+  // Posición inicial: primer item centrado
+  const startY = centerOffset;
+  // Posición final: el item ganador centrado
+  // El ganador está en: 3 (buffer) + fullRotations * poolSize + winnerIdx
+  const winnerItemIndex = 3 + fullRotations * poolSize + winnerIdx;
+  const endY = centerOffset - winnerItemIndex * ITEM_H;
+  const totalDistance = startY - endY;
+
+  track.style.transform = `translateY(${startY}px)`;
+
+  const totalDuration = 4000 + Math.random() * 1500;
   const startTime = performance.now();
 
   function animate(now) {
     const elapsed = now - startTime;
     const progress = Math.min(elapsed / totalDuration, 1);
-    
-    // Easing: rápido al inicio, desacelera gradualmente
-    // Usando easeOutQuart para una desaceleración suave
+
+    // EaseOutQuart: desaceleración suave
     const eased = 1 - Math.pow(1 - progress, 4);
-    
-    pos = targetPos * eased;
 
-    // Calcular la posición visual con wrapping circular
-    const visualPos = pos % cycleH;
-    
-    // Actualizar los items del DOM para el scroll circular
-    const firstVisibleIdx = Math.floor(visualPos / ITEM_H);
-    const offsetInItem = visualPos % ITEM_H;
-    
-    // Re-llenar el track basado en la posición actual
-    const items = track.children;
-    for (let i = 0; i < items.length; i++) {
-      const dataIdx = (firstVisibleIdx + i) % poolSize;
-      items[i].textContent = pendientes[dataIdx].nombre;
-      items[i].classList.remove('winner-item');
-    }
-
-    // Posicionar el track
-    track.style.transform = `translateY(${centerOffset - offsetInItem}px)`;
+    const currentY = startY - totalDistance * eased;
+    track.style.transform = `translateY(${currentY}px)`;
 
     if (progress < 1) {
       ruletaAnimId = requestAnimationFrame(animate);
     } else {
-      // Terminó — asegurar que el ganador queda centrado
-      const finalItems = track.children;
-      for (let i = 0; i < finalItems.length; i++) {
-        const dataIdx = (firstVisibleIdx + i) % poolSize;
-        finalItems[i].textContent = pendientes[dataIdx].nombre;
-        if (dataIdx === winnerIdx && i < 3) {
-          finalItems[i].classList.add('winner-item');
-        }
+      // Marcar ganador
+      const items = track.children;
+      if (items[winnerItemIndex]) {
+        items[winnerItemIndex].classList.add('winner-item');
       }
 
       ruletaGirando = false;
