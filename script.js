@@ -706,6 +706,7 @@ function updateCounter(allItems, filteredItems) {
 // ============ RULETA ============
 
 let ruletaGirando = false;
+let ruletaAnimId = null;
 
 function abrirRuleta() {
   const pendientes = getPendientesForRuleta();
@@ -715,43 +716,47 @@ function abrirRuleta() {
   const btn = $('#btn-girar');
   const selector = document.querySelector('.ruleta-selector');
 
+  // Cancelar animación previa
+  if (ruletaAnimId) { cancelAnimationFrame(ruletaAnimId); ruletaAnimId = null; }
+  ruletaGirando = false;
+
   result.hidden = true;
   empty.hidden = true;
   btn.disabled = false;
   btn.classList.remove('girando');
   btn.querySelector('span').textContent = '\u00a1Girar!';
   if (selector) selector.classList.remove('winner');
-  track.style.transform = 'translateY(0)';
-  track.style.transition = 'none';
 
   if (pendientes.length === 0) {
     empty.hidden = false;
     btn.disabled = true;
     track.innerHTML = '';
   } else {
-    // Mostrar items iniciales centrados en la ventana
-    const ITEM_H = 70;
-    const WINDOW_H = 210;
-    const centerOffset = (WINDOW_H - ITEM_H) / 2;
-    let html = '';
-    // Rellenar suficientes items para cubrir la ventana
-    for (let i = 0; i < Math.max(5, pendientes.length); i++) {
-      const r = pendientes[i % pendientes.length];
-      html += `<div class="ruleta-item">${escapeHtml(r.nombre)}</div>`;
-    }
-    track.innerHTML = html;
-    track.style.transform = `translateY(${centerOffset}px)`;
+    buildRuletaTrack(pendientes, track);
   }
 
   $('#modal-ruleta').hidden = false;
 }
 
 function getPendientesForRuleta() {
-  // Usar tab actual: restaurantes o actividades
   if (state.tabActual === 'restaurantes') {
     return state.restaurantes.filter(r => r.estado === 'pendiente');
   }
   return state.actividades.filter(a => a.estado === 'pendiente');
+}
+
+function buildRuletaTrack(pendientes, track) {
+  // Crear suficientes copias para llenar la ventana + buffer
+  // Ventana = 210px, item = 70px → 3 visibles + 2 buffer = 5 mínimo
+  const copies = Math.max(8, Math.ceil(10 / pendientes.length) * pendientes.length);
+  let html = '';
+  for (let i = 0; i < copies; i++) {
+    const r = pendientes[i % pendientes.length];
+    html += `<div class="ruleta-item">${escapeHtml(r.nombre)}</div>`;
+  }
+  track.innerHTML = html;
+  // Centrar el primer item
+  track.style.transform = `translateY(70px)`;
 }
 
 function girarRuleta() {
@@ -774,72 +779,97 @@ function girarRuleta() {
 
   const ITEM_H = 70;
   const WINDOW_H = 210;
-  const centerOffset = (WINDOW_H - ITEM_H) / 2;
-  
-  // Elegir ganador al azar
+  const centerOffset = (WINDOW_H - ITEM_H) / 2; // 70px
+
+  // Elegir ganador
   const winnerIdx = Math.floor(Math.random() * pendientes.length);
   const winner = pendientes[winnerIdx];
-  
-  // Crear track largo: muchas repeticiones + el ganador centrado
-  const minRepeats = 8;
-  const extraRepeats = Math.floor(Math.random() * 3);
-  const totalRepeats = minRepeats + extraRepeats;
-  const totalSlots = pendientes.length * totalRepeats + winnerIdx;
-  
+
+  // Crear un pool circular grande de items
+  const poolSize = pendientes.length;
+  // Necesitamos suficientes items visibles en el DOM
+  const domItems = Math.max(12, poolSize * 3);
   let html = '';
-  for (let i = 0; i <= totalSlots; i++) {
-    const r = pendientes[i % pendientes.length];
-    const isWinner = i === totalSlots;
-    html += `<div class="ruleta-item${isWinner ? ' winner-item' : ''}">${escapeHtml(r.nombre)}</div>`;
+  for (let i = 0; i < domItems; i++) {
+    html += `<div class="ruleta-item">${escapeHtml(pendientes[i % poolSize].nombre)}</div>`;
   }
-  // Agregar items extras después del ganador para que no se vea vacío abajo
-  for (let i = 1; i <= 3; i++) {
-    const r = pendientes[(winnerIdx + i) % pendientes.length];
-    html += `<div class="ruleta-item">${escapeHtml(r.nombre)}</div>`;
-  }
-
   track.innerHTML = html;
-  track.style.transition = 'none';
-  track.style.transform = `translateY(${centerOffset}px)`;
 
-  // Forzar reflow
-  void track.offsetHeight;
+  // Animación con requestAnimationFrame
+  // Posición = offset en px (posición lógica, puede crecer infinitamente)
+  let pos = 0;
+  const cycleH = poolSize * ITEM_H; // Una vuelta completa
+  
+  // Velocidad: empieza rápida, desacelera
+  const totalDuration = 4000 + Math.random() * 1500; // 4-5.5 segundos
+  // Distancia total que recorrer: varias vueltas + parar en el ganador
+  const fullRotations = 5 + Math.floor(Math.random() * 3); // 5-7 vueltas
+  const targetPos = fullRotations * cycleH + winnerIdx * ITEM_H;
+  
+  const startTime = performance.now();
 
-  // Calcular destino: el ganador (totalSlots) debe quedar centrado en la ventana
-  const targetOffset = -(totalSlots * ITEM_H) + centerOffset;
-  const duration = 3500 + Math.random() * 1500;
-
-  // Easing más dramático: arranca rápido, frena suave
-  track.style.transition = `transform ${duration}ms cubic-bezier(0.05, 0.7, 0.15, 1)`;
-  track.style.transform = `translateY(${targetOffset}px)`;
-
-  setTimeout(() => {
-    ruletaGirando = false;
-    btn.disabled = false;
-    btn.classList.remove('girando');
-    btn.querySelector('span').textContent = '\u00a1Girar de nuevo!';
-
-    // Glow en el selector
-    if (selector) selector.classList.add('winner');
-
-    // Mostrar resultado
-    $('#ruleta-winner').textContent = winner.nombre;
-    $('#ruleta-winner-loc').textContent = winner.ubicacion ? '\ud83d\udccd ' + winner.ubicacion : '';
+  function animate(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / totalDuration, 1);
     
-    // Mostrar clase si tiene
-    const claseInfo = { 'C': 'Clase C \u2022 S/50\u2013150', 'B': 'Clase B \u2022 S/150\u2013300', 'A': 'Clase A \u2022 S/300\u2013600', 'S': 'Clase S \u2022 S/600+' };
-    const claseEl = $('#ruleta-winner-clase');
-    if (winner.clase && claseInfo[winner.clase]) {
-      claseEl.textContent = '\ud83d\udcb0 ' + claseInfo[winner.clase];
-    } else {
-      claseEl.textContent = '';
+    // Easing: rápido al inicio, desacelera gradualmente
+    // Usando easeOutQuart para una desaceleración suave
+    const eased = 1 - Math.pow(1 - progress, 4);
+    
+    pos = targetPos * eased;
+
+    // Calcular la posición visual con wrapping circular
+    const visualPos = pos % cycleH;
+    
+    // Actualizar los items del DOM para el scroll circular
+    const firstVisibleIdx = Math.floor(visualPos / ITEM_H);
+    const offsetInItem = visualPos % ITEM_H;
+    
+    // Re-llenar el track basado en la posición actual
+    const items = track.children;
+    for (let i = 0; i < items.length; i++) {
+      const dataIdx = (firstVisibleIdx + i) % poolSize;
+      items[i].textContent = pendientes[dataIdx].nombre;
+      items[i].classList.remove('winner-item');
     }
-    
-    result.hidden = false;
 
-    // Confetti!
-    lanzarConfetti();
-  }, duration + 300);
+    // Posicionar el track
+    track.style.transform = `translateY(${centerOffset - offsetInItem}px)`;
+
+    if (progress < 1) {
+      ruletaAnimId = requestAnimationFrame(animate);
+    } else {
+      // Terminó — asegurar que el ganador queda centrado
+      const finalItems = track.children;
+      for (let i = 0; i < finalItems.length; i++) {
+        const dataIdx = (firstVisibleIdx + i) % poolSize;
+        finalItems[i].textContent = pendientes[dataIdx].nombre;
+        if (dataIdx === winnerIdx && i < 3) {
+          finalItems[i].classList.add('winner-item');
+        }
+      }
+
+      ruletaGirando = false;
+      ruletaAnimId = null;
+      btn.disabled = false;
+      btn.classList.remove('girando');
+      btn.querySelector('span').textContent = '\u00a1Girar de nuevo!';
+
+      if (selector) selector.classList.add('winner');
+
+      // Resultado
+      $('#ruleta-winner').textContent = winner.nombre;
+      $('#ruleta-winner-loc').textContent = winner.ubicacion ? '\ud83d\udccd ' + winner.ubicacion : '';
+      const claseInfo = { 'C': 'Clase C \u2022 S/50\u2013150', 'B': 'Clase B \u2022 S/150\u2013300', 'A': 'Clase A \u2022 S/300\u2013600', 'S': 'Clase S \u2022 S/600+' };
+      const claseEl = $('#ruleta-winner-clase');
+      claseEl.textContent = (winner.clase && claseInfo[winner.clase]) ? '\ud83d\udcb0 ' + claseInfo[winner.clase] : '';
+      result.hidden = false;
+
+      lanzarConfetti();
+    }
+  }
+
+  ruletaAnimId = requestAnimationFrame(animate);
 }
 
 function lanzarConfetti() {
@@ -851,19 +881,17 @@ function lanzarConfetti() {
     el.className = 'ruleta-confetti';
     el.textContent = shapes[Math.floor(Math.random() * shapes.length)];
     
-    // Posición inicial cerca del centro
-    const startX = 40 + Math.random() * 20; // 40-60% del viewport
-    const startY = 30 + Math.random() * 20; // 30-50%
+    const startX = 40 + Math.random() * 20;
+    const startY = 30 + Math.random() * 20;
     el.style.left = startX + 'vw';
     el.style.top = startY + 'vh';
     el.style.fontSize = (8 + Math.random() * 18) + 'px';
     el.style.color = colors[Math.floor(Math.random() * colors.length)];
     
-    // Dirección aleatoria (explotar hacia fuera)
     const angle = Math.random() * Math.PI * 2;
     const distance = 30 + Math.random() * 60;
     const driftX = Math.cos(angle) * distance;
-    const driftY = Math.sin(angle) * distance - 20; // Sesgo hacia arriba
+    const driftY = Math.sin(angle) * distance - 20;
     const spinDeg = (Math.random() - 0.5) * 1440;
     
     el.style.setProperty('--drift-x', driftX + 'vw');
