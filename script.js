@@ -332,7 +332,7 @@ function renderRestauranteCard(item) {
     : '<span class="card-badge badge-pendiente">Por visitar</span>';
 
   const claseBadge = renderClaseBadge(item.clase);
-  const fechaHtml = item.fecha ? `<div class="card-date">${timeAgo(item.fecha)}</div>` : '';
+  const fechaHtml = (item.estado === 'visitado' && item.fecha) ? `<div class="card-date">📅 ${formatFechaVisita(item.fecha)}</div>` : '';
 
   return `
     <div class="item-card ${item.estado}">
@@ -357,8 +357,8 @@ function renderRestauranteCard(item) {
           </div>
         </div>
         ${item.descripcion ? `<div class="card-description">${escapeHtml(item.descripcion)}</div>` : ''}
+        ${fechaHtml}
       ` : ''}
-      ${fechaHtml}
       <div class="card-actions">
         <button class="card-btn card-btn-edit" data-id="${item.id}" data-type="restaurantes">
           <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -381,7 +381,7 @@ function renderActividadCard(item) {
     : '<span class="card-badge badge-pendiente">Pendiente</span>';
 
   const claseBadge = renderClaseBadge(item.clase);
-  const fechaHtml = item.fecha ? `<div class="card-date">${timeAgo(item.fecha)}</div>` : '';
+  const fechaHtml = (item.estado === 'visitado' && item.fecha) ? `<div class="card-date">📅 ${formatFechaVisita(item.fecha)}</div>` : '';
 
   return `
     <div class="item-card ${item.estado}">
@@ -406,8 +406,8 @@ function renderActividadCard(item) {
           </div>
         </div>
         ${item.descripcion ? `<div class="card-description">${escapeHtml(item.descripcion)}</div>` : ''}
+        ${fechaHtml}
       ` : ''}
-      ${fechaHtml}
       <div class="card-actions">
         <button class="card-btn card-btn-edit" data-id="${item.id}" data-type="actividades">
           <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -452,6 +452,7 @@ function abrirModalNuevo() {
     $('#rest-categoria').value = '';
     setRating('rest-rating-alex', 0);
     setRating('rest-rating-vane', 0);
+    $('#rest-fecha-visita').value = '';
     toggleDetalles('rest', 'pendiente');
     $('#modal-restaurante').hidden = false;
   } else {
@@ -460,6 +461,7 @@ function abrirModalNuevo() {
     $('#act-id').value = '';
     setRating('act-rating-alex', 0);
     setRating('act-rating-vane', 0);
+    $('#act-fecha-visita').value = '';
     toggleDetalles('act', 'pendiente');
     $('#modal-actividad').hidden = false;
   }
@@ -484,6 +486,7 @@ function editarItem(id, type) {
     $('#rest-descripcion').value = item.descripcion || '';
     setRating('rest-rating-alex', item.calificacionAlex || 0);
     setRating('rest-rating-vane', item.calificacionVane || 0);
+    $('#rest-fecha-visita').value = item.fecha ? item.fecha.slice(0, 10) : '';
     toggleDetalles('rest', item.estado);
     $('#modal-restaurante').hidden = false;
   } else {
@@ -500,6 +503,7 @@ function editarItem(id, type) {
     $('#act-descripcion').value = item.descripcion || '';
     setRating('act-rating-alex', item.calificacionAlex || 0);
     setRating('act-rating-vane', item.calificacionVane || 0);
+    $('#act-fecha-visita').value = item.fecha ? item.fecha.slice(0, 10) : '';
     toggleDetalles('act', item.estado);
     $('#modal-actividad').hidden = false;
   }
@@ -571,7 +575,8 @@ async function handleGuardarRestaurante(e) {
     estado: $('#rest-estado').value,
     descripcion: $('#rest-descripcion').value.trim(),
     calificacionAlex: getRating('rest-rating-alex'),
-    calificacionVane: getRating('rest-rating-vane')
+    calificacionVane: getRating('rest-rating-vane'),
+    fecha: $('#rest-estado').value === 'visitado' ? ($('#rest-fecha-visita').value || '') : ''
   };
 
   if (!item.nombre) return;
@@ -616,7 +621,8 @@ async function handleGuardarActividad(e) {
     estado: $('#act-estado').value,
     descripcion: $('#act-descripcion').value.trim(),
     calificacionAlex: getRating('act-rating-alex'),
-    calificacionVane: getRating('act-rating-vane')
+    calificacionVane: getRating('act-rating-vane'),
+    fecha: $('#act-estado').value === 'visitado' ? ($('#act-fecha-visita').value || '') : ''
   };
 
   if (!item.nombre) return;
@@ -694,24 +700,16 @@ function mostrarLoading(show) {
   }
 }
 
-function timeAgo(dateStr) {
+function formatFechaVisita(dateStr) {
   if (!dateStr) return '';
-  const d = new Date(dateStr);
-  if (isNaN(d)) return '';
-  const now = new Date();
-  const diff = now - d;
-  const mins = Math.floor(diff / 60000);
-  const hrs = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-  const months = Math.floor(days / 30);
-  const years = Math.floor(days / 365);
-  if (mins < 1) return 'Justo ahora';
-  if (mins < 60) return `Hace ${mins} min`;
-  if (hrs < 24) return `Hace ${hrs}h`;
-  if (days === 1) return 'Ayer';
-  if (days < 30) return `Hace ${days} días`;
-  if (months < 12) return `Hace ${months} mes${months > 1 ? 'es' : ''}`;
-  return `Hace ${years} año${years > 1 ? 's' : ''}`;
+  // Soporta tanto "2026-02-12" como "2026-02-12T..." (ISO)
+  const parts = dateStr.slice(0, 10).split('-');
+  if (parts.length !== 3) return dateStr;
+  const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const day = parseInt(parts[2], 10);
+  const month = meses[parseInt(parts[1], 10) - 1] || '';
+  const year = parts[0];
+  return `${day} ${month} ${year}`;
 }
 
 function escapeHtml(text) {
