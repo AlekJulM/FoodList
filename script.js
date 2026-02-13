@@ -708,16 +708,19 @@ function updateCounter(allItems, filteredItems) {
 let ruletaGirando = false;
 
 function abrirRuleta() {
-  const pendientes = state.restaurantes.filter(r => r.estado === 'pendiente');
+  const pendientes = getPendientesForRuleta();
   const track = $('#ruleta-track');
   const result = $('#ruleta-result');
   const empty = $('#ruleta-empty');
   const btn = $('#btn-girar');
+  const selector = document.querySelector('.ruleta-selector');
 
   result.hidden = true;
   empty.hidden = true;
   btn.disabled = false;
+  btn.classList.remove('girando');
   btn.querySelector('span').textContent = '\u00a1Girar!';
+  if (selector) selector.classList.remove('winner');
   track.style.transform = 'translateY(0)';
   track.style.transition = 'none';
 
@@ -726,90 +729,149 @@ function abrirRuleta() {
     btn.disabled = true;
     track.innerHTML = '';
   } else {
-    // Llenar track con items
-    track.innerHTML = pendientes.map(r => 
-      `<div class="ruleta-item">${escapeHtml(r.nombre)}</div>`
-    ).join('');
+    // Mostrar items iniciales centrados en la ventana
+    const ITEM_H = 70;
+    const WINDOW_H = 210;
+    const centerOffset = (WINDOW_H - ITEM_H) / 2;
+    let html = '';
+    // Rellenar suficientes items para cubrir la ventana
+    for (let i = 0; i < Math.max(5, pendientes.length); i++) {
+      const r = pendientes[i % pendientes.length];
+      html += `<div class="ruleta-item">${escapeHtml(r.nombre)}</div>`;
+    }
+    track.innerHTML = html;
+    track.style.transform = `translateY(${centerOffset}px)`;
   }
 
   $('#modal-ruleta').hidden = false;
 }
 
+function getPendientesForRuleta() {
+  // Usar tab actual: restaurantes o actividades
+  if (state.tabActual === 'restaurantes') {
+    return state.restaurantes.filter(r => r.estado === 'pendiente');
+  }
+  return state.actividades.filter(a => a.estado === 'pendiente');
+}
+
 function girarRuleta() {
   if (ruletaGirando) return;
 
-  const pendientes = state.restaurantes.filter(r => r.estado === 'pendiente');
+  const pendientes = getPendientesForRuleta();
   if (pendientes.length === 0) return;
 
   ruletaGirando = true;
   const btn = $('#btn-girar');
   const track = $('#ruleta-track');
   const result = $('#ruleta-result');
+  const selector = document.querySelector('.ruleta-selector');
 
   btn.disabled = true;
+  btn.classList.add('girando');
   btn.querySelector('span').textContent = 'Girando...';
   result.hidden = true;
+  if (selector) selector.classList.remove('winner');
 
-  // Crear track largo para la animación (repetir items muchas veces + ganador)
+  const ITEM_H = 70;
+  const WINDOW_H = 210;
+  const centerOffset = (WINDOW_H - ITEM_H) / 2;
+  
+  // Elegir ganador al azar
   const winnerIdx = Math.floor(Math.random() * pendientes.length);
   const winner = pendientes[winnerIdx];
-  const repeats = 6; // Cuántas vueltas completas
-  const totalItems = pendientes.length * repeats + winnerIdx;
+  
+  // Crear track largo: muchas repeticiones + el ganador centrado
+  const minRepeats = 8;
+  const extraRepeats = Math.floor(Math.random() * 3);
+  const totalRepeats = minRepeats + extraRepeats;
+  const totalSlots = pendientes.length * totalRepeats + winnerIdx;
   
   let html = '';
-  for (let i = 0; i < pendientes.length * repeats; i++) {
-    html += `<div class="ruleta-item">${escapeHtml(pendientes[i % pendientes.length].nombre)}</div>`;
+  for (let i = 0; i <= totalSlots; i++) {
+    const r = pendientes[i % pendientes.length];
+    const isWinner = i === totalSlots;
+    html += `<div class="ruleta-item${isWinner ? ' winner-item' : ''}">${escapeHtml(r.nombre)}</div>`;
   }
-  // Agregar hasta el ganador inclusive
-  for (let i = 0; i <= winnerIdx; i++) {
-    html += `<div class="ruleta-item ${i === winnerIdx ? 'highlight' : ''}">${escapeHtml(pendientes[i].nombre)}</div>`;
+  // Agregar items extras después del ganador para que no se vea vacío abajo
+  for (let i = 1; i <= 3; i++) {
+    const r = pendientes[(winnerIdx + i) % pendientes.length];
+    html += `<div class="ruleta-item">${escapeHtml(r.nombre)}</div>`;
   }
 
   track.innerHTML = html;
   track.style.transition = 'none';
-  track.style.transform = 'translateY(0)';
+  track.style.transform = `translateY(${centerOffset}px)`;
 
   // Forzar reflow
-  track.offsetHeight;
+  void track.offsetHeight;
 
-  // Calcular distancia: cada item mide 60px
-  const itemHeight = 60;
-  const targetOffset = totalItems * itemHeight;
-  const duration = 3000 + Math.random() * 1000;
+  // Calcular destino: el ganador (totalSlots) debe quedar centrado en la ventana
+  const targetOffset = -(totalSlots * ITEM_H) + centerOffset;
+  const duration = 3500 + Math.random() * 1500;
 
-  track.style.transition = `transform ${duration}ms cubic-bezier(0.15, 0.85, 0.25, 1)`;
-  track.style.transform = `translateY(-${targetOffset}px)`;
+  // Easing más dramático: arranca rápido, frena suave
+  track.style.transition = `transform ${duration}ms cubic-bezier(0.05, 0.7, 0.15, 1)`;
+  track.style.transform = `translateY(${targetOffset}px)`;
 
   setTimeout(() => {
     ruletaGirando = false;
     btn.disabled = false;
+    btn.classList.remove('girando');
     btn.querySelector('span').textContent = '\u00a1Girar de nuevo!';
+
+    // Glow en el selector
+    if (selector) selector.classList.add('winner');
 
     // Mostrar resultado
     $('#ruleta-winner').textContent = winner.nombre;
-    $('#ruleta-winner-loc').textContent = winner.ubicacion || '';
+    $('#ruleta-winner-loc').textContent = winner.ubicacion ? '\ud83d\udccd ' + winner.ubicacion : '';
+    
+    // Mostrar clase si tiene
+    const claseInfo = { 'C': 'Clase C \u2022 S/50\u2013150', 'B': 'Clase B \u2022 S/150\u2013300', 'A': 'Clase A \u2022 S/300\u2013600', 'S': 'Clase S \u2022 S/600+' };
+    const claseEl = $('#ruleta-winner-clase');
+    if (winner.clase && claseInfo[winner.clase]) {
+      claseEl.textContent = '\ud83d\udcb0 ' + claseInfo[winner.clase];
+    } else {
+      claseEl.textContent = '';
+    }
+    
     result.hidden = false;
 
     // Confetti!
     lanzarConfetti();
-  }, duration + 200);
+  }, duration + 300);
 }
 
 function lanzarConfetti() {
-  const colors = ['#f0c27f', '#d4587a', '#8db580', '#b478dc', '#e8956a', '#a0d490'];
-  const shapes = ['\u2605', '\u2726', '\u2764', '\u2728', '\u25cf'];
+  const colors = ['#f0c27f', '#d4587a', '#8db580', '#b478dc', '#e8956a', '#a0d490', '#ff6b9d'];
+  const shapes = ['\u2605', '\u2726', '\u2764', '\u2728', '\u25cf', '\u2736', '\u2662'];
   
-  for (let i = 0; i < 30; i++) {
+  for (let i = 0; i < 45; i++) {
     const el = document.createElement('div');
     el.className = 'ruleta-confetti';
     el.textContent = shapes[Math.floor(Math.random() * shapes.length)];
-    el.style.left = Math.random() * 100 + 'vw';
-    el.style.top = '-20px';
-    el.style.fontSize = (10 + Math.random() * 16) + 'px';
+    
+    // Posición inicial cerca del centro
+    const startX = 40 + Math.random() * 20; // 40-60% del viewport
+    const startY = 30 + Math.random() * 20; // 30-50%
+    el.style.left = startX + 'vw';
+    el.style.top = startY + 'vh';
+    el.style.fontSize = (8 + Math.random() * 18) + 'px';
     el.style.color = colors[Math.floor(Math.random() * colors.length)];
-    el.style.animationDelay = (Math.random() * 0.8) + 's';
-    el.style.animationDuration = (2 + Math.random() * 2) + 's';
+    
+    // Dirección aleatoria (explotar hacia fuera)
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 30 + Math.random() * 60;
+    const driftX = Math.cos(angle) * distance;
+    const driftY = Math.sin(angle) * distance - 20; // Sesgo hacia arriba
+    const spinDeg = (Math.random() - 0.5) * 1440;
+    
+    el.style.setProperty('--drift-x', driftX + 'vw');
+    el.style.setProperty('--drift-y', driftY + 'vh');
+    el.style.setProperty('--spin', spinDeg + 'deg');
+    el.style.animation = `confettiFly ${1.5 + Math.random() * 1.5}s cubic-bezier(0.25, 0.46, 0.45, 0.94) ${Math.random() * 0.3}s forwards`;
+    
     document.body.appendChild(el);
-    setTimeout(() => el.remove(), 5000);
+    setTimeout(() => el.remove(), 4000);
   }
 }

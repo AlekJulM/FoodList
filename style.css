@@ -1118,80 +1118,120 @@ body {
 /* ============ RULETA ============ */
 
 .modal-ruleta {
-  max-width: 420px;
+  max-width: 440px;
 }
 
 .ruleta-body {
-  padding: 20px 24px 24px;
+  padding: 16px 24px 28px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 22px;
 }
 
 .ruleta-machine {
   width: 100%;
-  padding: 0 10px;
+  padding: 0 6px;
 }
 
 .ruleta-window {
   position: relative;
-  height: 60px;
+  height: 210px;
   overflow: hidden;
-  border-radius: var(--radius-sm);
-  background: rgba(0, 0, 0, 0.35);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.4);
   border: 1px solid var(--border);
-  display: flex;
-  align-items: center;
 }
 
-.ruleta-pointer {
+.ruleta-fade {
   position: absolute;
-  left: 6px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--sunset-gold);
-  font-size: 12px;
-  z-index: 2;
-  filter: drop-shadow(0 0 4px rgba(240,194,127,0.5));
+  left: 0;
+  right: 0;
+  height: 70px;
+  z-index: 3;
+  pointer-events: none;
 }
 
-.ruleta-pointer-right {
-  left: auto;
-  right: 6px;
+.ruleta-fade-top {
+  top: 0;
+  background: linear-gradient(to bottom, rgba(17,14,23,0.95) 0%, transparent 100%);
+}
+
+.ruleta-fade-bottom {
+  bottom: 0;
+  background: linear-gradient(to top, rgba(17,14,23,0.95) 0%, transparent 100%);
+}
+
+.ruleta-selector {
+  position: absolute;
+  top: 50%;
+  left: 8px;
+  right: 8px;
+  height: 56px;
+  transform: translateY(-50%);
+  border: 2px solid rgba(240, 194, 127, 0.35);
+  border-radius: 12px;
+  background: rgba(240, 194, 127, 0.05);
+  z-index: 2;
+  pointer-events: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.ruleta-selector.winner {
+  border-color: var(--sunset-gold);
+  box-shadow: 0 0 20px rgba(240, 194, 127, 0.3), inset 0 0 20px rgba(240, 194, 127, 0.05);
+  animation: selectorPulse 1s ease-in-out 3;
+}
+
+@keyframes selectorPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(240, 194, 127, 0.3); }
+  50% { box-shadow: 0 0 35px rgba(240, 194, 127, 0.5), 0 0 60px rgba(240, 194, 127, 0.15); }
 }
 
 .ruleta-track {
   display: flex;
   flex-direction: column;
   width: 100%;
-  transition: none;
+  will-change: transform;
 }
 
 .ruleta-item {
-  height: 60px;
+  height: 70px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: 'Playfair Display', serif;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: rgba(255, 255, 255, 0.6);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 0 30px;
+  padding: 0 40px;
   flex-shrink: 0;
+  transition: color 0.2s, text-shadow 0.2s;
 }
 
-.ruleta-item.highlight {
+.ruleta-item.winner-item {
   color: var(--sunset-gold);
-  text-shadow: 0 0 20px rgba(240, 194, 127, 0.5);
+  font-size: 19px;
+  text-shadow: 0 0 24px rgba(240, 194, 127, 0.5);
 }
 
 .ruleta-result {
   text-align: center;
-  animation: modalIn 0.5s ease;
+  animation: resultReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes resultReveal {
+  0% { opacity: 0; transform: translateY(12px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.ruleta-winner-emoji {
+  font-size: 36px;
+  margin-bottom: 6px;
+  animation: float 2s ease-in-out infinite;
 }
 
 .ruleta-winner-label {
@@ -1203,13 +1243,14 @@ body {
 
 .ruleta-winner-name {
   font-family: 'Playfair Display', serif;
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 700;
   background: linear-gradient(135deg, var(--sunset-gold), var(--rose));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  line-height: 1.3;
 }
 
 .ruleta-winner-loc {
@@ -1218,20 +1259,51 @@ body {
   opacity: 0.7;
 }
 
+.ruleta-winner-clase {
+  margin-top: 8px;
+  font-size: 12px;
+}
+
 .ruleta-empty {
   text-align: center;
-  padding: 20px;
+  padding: 24px;
+}
+
+.ruleta-empty-icon {
+  font-size: 42px;
+  margin-bottom: 10px;
+  opacity: 0.7;
+}
+
+.ruleta-empty p {
   color: var(--text-secondary);
   font-size: 14px;
+  margin: 0;
+}
+
+.ruleta-empty-sub {
+  font-size: 12px !important;
+  opacity: 0.5;
+  margin-top: 4px !important;
 }
 
 .btn-girar {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 32px;
+  padding: 14px 36px;
   font-size: 15px;
   font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.btn-girar-icon {
+  font-size: 18px;
+  transition: transform 0.3s;
+}
+
+.btn-girar:hover .btn-girar-icon {
+  animation: spin 0.6s ease;
 }
 
 .btn-girar:disabled {
@@ -1239,16 +1311,20 @@ body {
   pointer-events: none;
 }
 
+.btn-girar.girando .btn-girar-icon {
+  animation: spin 0.5s linear infinite;
+}
+
 .ruleta-confetti {
   position: fixed;
   pointer-events: none;
   z-index: 500;
-  animation: confettiFall 2.5s ease-out forwards;
 }
 
-@keyframes confettiFall {
-  0% { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
-  100% { opacity: 0; transform: translateY(100vh) rotate(720deg) scale(0.3); }
+@keyframes confettiFly {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--drift-x), var(--drift-y)) rotate(var(--spin)) scale(0.2); }
 }
 
 @media (max-width: 500px) {
@@ -1266,8 +1342,10 @@ body {
   .fab { bottom: 20px; right: 20px; width: 52px; height: 52px; }
   .modal { margin: 10px; border-radius: 16px; }
   .modal-form { padding: 12px 18px 18px; }
-  .ruleta-item { font-size: 15px; padding: 0 24px; }
+  .ruleta-item { font-size: 14px; padding: 0 24px; height: 60px; }
+  .ruleta-window { height: 180px; }
   .ruleta-winner-name { font-size: 22px; }
+  .ruleta-selector { height: 48px; }
 }
 
 /* ============ SELECTION ============ */

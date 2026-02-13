@@ -301,7 +301,7 @@
     <div id="modal-ruleta" class="modal-overlay" hidden>
       <div class="modal modal-ruleta">
         <div class="modal-header">
-          <h2>🎰 ¿A dónde vamos?</h2>
+          <h2>� ¿A dónde vamos hoy?</h2>
           <button class="modal-close" data-close="modal-ruleta">
             <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg>
           </button>
@@ -309,21 +309,26 @@
         <div class="ruleta-body">
           <div class="ruleta-machine">
             <div class="ruleta-window">
-              <div class="ruleta-pointer">▶</div>
+              <div class="ruleta-fade ruleta-fade-top"></div>
+              <div class="ruleta-selector"></div>
               <div class="ruleta-track" id="ruleta-track"></div>
-              <div class="ruleta-pointer ruleta-pointer-right">◀</div>
+              <div class="ruleta-fade ruleta-fade-bottom"></div>
             </div>
           </div>
           <div id="ruleta-result" class="ruleta-result" hidden>
+            <div class="ruleta-winner-emoji">🎉</div>
             <div class="ruleta-winner-label">Hoy van a…</div>
             <div class="ruleta-winner-name" id="ruleta-winner"></div>
             <div class="ruleta-winner-loc" id="ruleta-winner-loc"></div>
+            <div class="ruleta-winner-clase" id="ruleta-winner-clase"></div>
           </div>
           <div id="ruleta-empty" class="ruleta-empty" hidden>
-            <p>No hay restaurantes pendientes por visitar 😢</p>
+            <div class="ruleta-empty-icon">🍽️</div>
+            <p>No hay restaurantes pendientes</p>
+            <p class="ruleta-empty-sub">¡Agregá lugares para usar la ruleta!</p>
           </div>
           <button class="btn btn-primary btn-girar" id="btn-girar">
-            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+            <span class="btn-girar-icon">🎰</span>
             <span>¡Girar!</span>
           </button>
         </div>
