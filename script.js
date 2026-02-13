@@ -769,7 +769,7 @@ function abrirRuleta() {
   result.hidden = true;
   empty.hidden = true;
   btn.disabled = false;
-  btn.querySelector('span').textContent = '\u00a1Girar!';
+  btn.querySelector('.btn-girar-text').textContent = '\u00a1Girar!';
   if (selector) selector.classList.remove('winner');
 
   if (pendientes.length === 0) {
@@ -816,13 +816,16 @@ function girarRuleta() {
   const selector = document.querySelector('.ruleta-selector');
 
   btn.disabled = true;
-  btn.querySelector('span').textContent = 'Girando...';
+  btn.querySelector('.btn-girar-text').textContent = 'Girando...';
   result.hidden = true;
   if (selector) selector.classList.remove('winner');
 
   const ITEM_H = 70;
   const WINDOW_H = 210;
-  const centerOffset = (WINDOW_H - ITEM_H) / 2; // 70px
+  // El selector está centrado en la ventana: top 50% - 28px = posición 77px
+  // El centro del selector = WINDOW_H / 2 = 105px
+  // Para centrar un item (70px) en el selector: offset = 105 - 35 = 70px
+  const centerOffset = (WINDOW_H - ITEM_H) / 2;
 
   // Elegir ganador
   const winnerIdx = Math.floor(Math.random() * pendientes.length);
@@ -832,8 +835,9 @@ function girarRuleta() {
   const fullRotations = 5 + Math.floor(Math.random() * 3); // 5-7 vueltas
 
   // PRE-CONSTRUIR toda la pista de una vez (sin cambios DOM durante animación)
-  // Necesitamos: items iniciales visibles + vueltas completas + llegar al ganador + buffer
-  const totalItems = 3 + fullRotations * poolSize + winnerIdx + 3;
+  // Buffer inicial de 1 item visible arriba + vueltas completas + ganador + buffer final
+  const bufferBefore = 1;
+  const totalItems = bufferBefore + fullRotations * poolSize + winnerIdx + 4;
   let html = '';
   for (let i = 0; i < totalItems; i++) {
     const dataIdx = i % poolSize;
@@ -841,11 +845,11 @@ function girarRuleta() {
   }
   track.innerHTML = html;
 
+  // El item ganador en el DOM
+  const winnerItemIndex = bufferBefore + fullRotations * poolSize + winnerIdx;
   // Posición inicial: primer item centrado
   const startY = centerOffset;
-  // Posición final: el item ganador centrado
-  // El ganador está en: 3 (buffer) + fullRotations * poolSize + winnerIdx
-  const winnerItemIndex = 3 + fullRotations * poolSize + winnerIdx;
+  // Posición final: el item ganador centrado en el selector
   const endY = centerOffset - winnerItemIndex * ITEM_H;
   const totalDistance = startY - endY;
 
@@ -876,7 +880,7 @@ function girarRuleta() {
       ruletaGirando = false;
       ruletaAnimId = null;
       btn.disabled = false;
-      btn.querySelector('span').textContent = '\u00a1Girar de nuevo!';
+      btn.querySelector('.btn-girar-text').textContent = '\u00a1Girar de nuevo!';
 
       if (selector) selector.classList.add('winner');
 
