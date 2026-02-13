@@ -570,6 +570,44 @@ body {
   border: 1px solid rgba(141, 181, 128, 0.15);
 }
 
+/* Badges de clase/precio */
+.card-badges {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.badge-clase {
+  font-size: 9px;
+  letter-spacing: 0.8px;
+}
+
+.badge-clase-c {
+  background: rgba(141, 181, 128, 0.12);
+  color: #a0d490;
+  border: 1px solid rgba(141, 181, 128, 0.2);
+}
+
+.badge-clase-b {
+  background: rgba(240, 194, 127, 0.12);
+  color: var(--sunset-gold);
+  border: 1px solid rgba(240, 194, 127, 0.2);
+}
+
+.badge-clase-a {
+  background: rgba(212, 88, 122, 0.12);
+  color: var(--rose-soft);
+  border: 1px solid rgba(212, 88, 122, 0.2);
+}
+
+.badge-clase-s {
+  background: linear-gradient(135deg, rgba(212, 88, 122, 0.15), rgba(180, 120, 220, 0.15));
+  color: #d4a0f0;
+  border: 1px solid rgba(180, 120, 220, 0.25);
+  text-shadow: 0 0 8px rgba(180, 120, 220, 0.3);
+}
+
 .card-type {
   display: inline-block;
   padding: 3px 10px;

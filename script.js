@@ -307,11 +307,16 @@ function renderRestauranteCard(item) {
     ? '<span class="card-badge badge-visitado">Visitado</span>'
     : '<span class="card-badge badge-pendiente">Por visitar</span>';
 
+  const claseBadge = renderClaseBadge(item.clase);
+
   return `
     <div class="item-card ${item.estado}">
       <div class="card-top">
         <span class="card-name">${escapeHtml(item.nombre)}</span>
-        ${badge}
+        <div class="card-badges">
+          ${claseBadge}
+          ${badge}
+        </div>
       </div>
       ${item.ubicacion ? `<div class="card-location"><span class="loc-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></span>${escapeHtml(item.ubicacion)}</div>` : ''}
       ${item.estado === 'visitado' ? `
@@ -348,11 +353,16 @@ function renderActividadCard(item) {
     ? '<span class="card-badge badge-visitado">Realizada</span>'
     : '<span class="card-badge badge-pendiente">Pendiente</span>';
 
+  const claseBadge = renderClaseBadge(item.clase);
+
   return `
     <div class="item-card ${item.estado}">
       <div class="card-top">
         <span class="card-name">${escapeHtml(item.nombre)}</span>
-        ${badge}
+        <div class="card-badges">
+          ${claseBadge}
+          ${badge}
+        </div>
       </div>
       ${item.tipo ? `<span class="card-type">${escapeHtml(item.tipo)}</span>` : ''}
       ${item.ubicacion ? `<div class="card-location"><span class="loc-icon"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></span>${escapeHtml(item.ubicacion)}</div>` : ''}
@@ -391,6 +401,18 @@ function renderStars(rating) {
   return html;
 }
 
+function renderClaseBadge(clase) {
+  if (!clase) return '';
+  const info = {
+    'C': { label: 'Clase C', range: 'S/50–150', icon: '💰' },
+    'B': { label: 'Clase B', range: 'S/150–300', icon: '💰💰' },
+    'A': { label: 'Clase A', range: 'S/300–600', icon: '💰💰💰' },
+    'S': { label: 'Clase S', range: 'S/600+', icon: '👑' }
+  };
+  const c = info[clase] || info['C'];
+  return `<span class="card-badge badge-clase badge-clase-${clase.toLowerCase()}" title="${c.range}">${c.icon} ${c.label}</span>`;
+}
+
 // ============ MODALES ============
 
 function abrirModalNuevo() {
@@ -426,6 +448,7 @@ function editarItem(id, type) {
     $('#rest-id').value = item.id;
     $('#rest-nombre').value = item.nombre || '';
     $('#rest-ubicacion').value = item.ubicacion || '';
+    $('#rest-clase').value = item.clase || '';
     $('#rest-estado').value = item.estado || 'pendiente';
     $('#rest-descripcion').value = item.descripcion || '';
     setRating('rest-rating-alex', item.calificacionAlex || 0);
@@ -441,6 +464,7 @@ function editarItem(id, type) {
     $('#act-nombre').value = item.nombre || '';
     $('#act-tipo').value = item.tipo || '🎬 Cine';
     $('#act-ubicacion').value = item.ubicacion || '';
+    $('#act-clase').value = item.clase || '';
     $('#act-estado').value = item.estado || 'pendiente';
     $('#act-descripcion').value = item.descripcion || '';
     setRating('act-rating-alex', item.calificacionAlex || 0);
@@ -511,6 +535,7 @@ async function handleGuardarRestaurante(e) {
   const item = {
     nombre: $('#rest-nombre').value.trim(),
     ubicacion: $('#rest-ubicacion').value.trim(),
+    clase: $('#rest-clase').value,
     estado: $('#rest-estado').value,
     descripcion: $('#rest-descripcion').value.trim(),
     calificacionAlex: getRating('rest-rating-alex'),
@@ -555,6 +580,7 @@ async function handleGuardarActividad(e) {
     nombre: $('#act-nombre').value.trim(),
     tipo: $('#act-tipo').value,
     ubicacion: $('#act-ubicacion').value.trim(),
+    clase: $('#act-clase').value,
     estado: $('#act-estado').value,
     descripcion: $('#act-descripcion').value.trim(),
     calificacionAlex: getRating('act-rating-alex'),
